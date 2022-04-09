@@ -4,7 +4,8 @@
   "description": "Simple chat webapp project made in nodejs.",
   "main": "index.js",
   "scripts": {
-    "devStart": "nodemon -e js,ejs server.js"
+    "devStart": "nodemon -e js,ejs server.js",
+    "devStartAuth": "nodemon -e js,ejs authServer.js"
   },
   "repository": {
     "type": "git",

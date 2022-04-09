@@ -1,27 +1,46 @@
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const app = express();
+require('dotenv').config()
 
-app.use(express.static("public")); //Make static files available
-app.use(express.urlencoded({ extended: true })); //Make body data accessible
-app.use(express.json); //Allow json parsing
-app.set('view engine', 'ejs'); //Use EJS
+//Requires
+const express = require('express')
+const jwt = require('jsonwebtoken')
+const User = require('./public/js/user.js')
+const app = express()
+
+//Uses
+app.use(express.static("public")) //Make static files available
+app.use(express.urlencoded({ extended: true })) //Make body data accessible
+app.use(express.json()) //Allow json parsing
+app.set('view engine', 'ejs') //Use EJS
+
 
 //Routes
 app.get('/', (req, res) => {
     res.render("index", {text: 'world'})
-});
+})
 
-app.post('/login', (req, res) => {
-    //Authenticate User
-    const username = req.body.username;
-    const user = { name: username };
+app.get('/test', authenticateToken, (req, res) => {
+    res.json(req.user);
+})
 
-    const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET);
-    res.json({ Token: accessToken });
-});
+const userRouter = require('./routes/users')
+app.use('/users', userRouter)
 
-const userRouter = require('./routes/users');
-app.use('/users', userRouter);
 
-app.listen(8080);
+//Functions
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
+
+    if(token == null)
+        return res.sendStatus(401)
+
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if(err)
+            return res.sendStatus(403)
+
+        req.user = user;
+        next()
+    }, null)
+}
+
+app.listen(8080)
