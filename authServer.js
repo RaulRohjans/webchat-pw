@@ -13,6 +13,10 @@ app.get('/', (req, res) => {
 })
 let refreshTokens = []
 
+app.post('/signup', (req, res) => {
+
+})
+
 app.post('/login', (req, res) => {
     //Authenticate User
     const user = {
@@ -24,7 +28,7 @@ app.post('/login', (req, res) => {
 
     //Create Tokens
     const accessToken = generateAccessToken(user)
-    const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET)
+    const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, null, null)
 
     //Save refreshToken in the DB
     refreshTokens.push(refreshToken)
@@ -45,8 +49,8 @@ app.post('/token', (req, res) => {
     if(refreshToken == null)
         return res.sendStatus(401)
 
-    /*if(refreshTokens.includes(refreshToken)) //Check if Token exists in DB
-        return res.sendStatus(403)*/
+    if(refreshTokens.includes(refreshToken)) //Check if Token exists in DB
+        return res.sendStatus(403)
 
     jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
         if(err)
