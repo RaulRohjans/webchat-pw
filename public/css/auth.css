@@ -1,0 +1,43 @@
+@font-face {
+    font-family: Kathaline;
+    src: url('../fonts/Kathaline.ttf');
+}
+
+body {
+    padding-top: 40px;
+    padding-bottom: 40px;
+    background-color: #f5f5f5;
+}
+
+h1 {
+    padding: 0 10px;
+    font-family: 'Kathaline', serif;
+    font-size: 32px;
+}
+
+h2 {
+    font-size: 22px !important;
+}
+
+.form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+}
+
+.button-wrapper {
+    margin-top: 12px;
+    justify-content: center;
+    display: flex;
+    flex-direction: row;
+}
+
+.button-wrapper button, a{
+    margin: 8px 8px;
+    min-width: 100px;
+}
+
+.form-item-wrapper {
+    margin-top: 12px;
+}

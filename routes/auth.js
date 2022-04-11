@@ -1,5 +1,4 @@
 const express = require('express');
-const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 
@@ -11,7 +10,7 @@ router.get('/login', (req, res) => {
     res.render("auth/login", {text: 'world'})
 });
 
-router.post('/register', (req, res) => {
+router.get('/register', (req, res) => {
     //Redirect to main page if logged in
     if(isLoggedIn(req))
         res.redirect('/')
