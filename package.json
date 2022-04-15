@@ -4,8 +4,7 @@
   "description": "Simple chat webapp project made in nodejs.",
   "main": "index.js",
   "scripts": {
-    "devStart": "nodemon -e js,ejs server.js",
-    "devStartAuth": "nodemon -e js,ejs authServer.js"
+    "devStart": "nodemon -e js,ejs server.js"
   },
   "repository": {
     "type": "git",
@@ -19,8 +18,11 @@
   },
   "homepage": "https://github.com/RaulRohjans/webchat-pw#readme",
   "dependencies": {
+    "body-parser": "^1.20.0",
+    "cookie-parser": "^1.4.6",
+    "crypto": "^1.0.1",
     "dotenv": "^16.0.0",
-    "ejs": "^3.1.6",
+    "ejs": "^3.0.2",
     "express": "^4.17.3",
     "jsonwebtoken": "^8.5.1",
     "mysql": "^2.18.1"

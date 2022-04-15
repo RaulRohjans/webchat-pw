@@ -41,3 +41,16 @@ h2 {
 .form-item-wrapper {
     margin-top: 12px;
 }
+
+.message-wrapper {
+    margin-top: 10px;
+    font-size: 18px;
+}
+
+.error{
+    color: red;
+}
+
+.success {
+    color: green;
+}

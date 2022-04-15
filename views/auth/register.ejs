@@ -21,36 +21,33 @@
             integrity="sha256-HwWONEZrpuoh951cQD1ov2HUK5zA5DwJ1DNUXaM6FsY="
             crossorigin="anonymous"></script>
 
-    <style>
-
-    </style>
 </head>
 <body class="text-center">
 
 <div class="container">
     <div class="align-items-center">
         <h1>PW Chat</h1>
-        <form class="form-signin">
+        <form class="form-signin" action="/register" method="POST">
             <h2 class="h3 mb-3 font-weight-normal">Please sign up</h2>
 
             <div class="form-item-wrapper">
                 <label for="txt_username" class="sr-only">Username</label>
-                <input type="text" id="txt_username" class="form-control" placeholder="Username" required="" autofocus="">
+                <input type="text" name="txt_username" id="txt_username" class="form-control" placeholder="Username" value="<%= locals.txt_username%>" required="" autofocus="">
             </div>
 
             <div class="form-item-wrapper">
                 <label for="txt_email" class="sr-only">Email address</label>
-                <input type="email" id="txt_email" class="form-control" placeholder="Email address" required="">
+                <input type="email" name="txt_email" id="txt_email" class="form-control" placeholder="Email address" value="<%= locals.txt_email%>" required="">
             </div>
 
             <div class="form-item-wrapper">
                 <label for="txt_pw" class="sr-only">Password</label>
-                <input type="password" id="txt_pw" class="form-control" placeholder="Password" required="">
+                <input type="password" name="txt_pw" id="txt_pw" class="form-control" placeholder="Password" required="">
             </div>
 
             <div class="form-item-wrapper">
                 <label for="txt_rePw" class="sr-only">Repeat Password</label>
-                <input type="password" id="txt_rePw" class="form-control" placeholder="Repeat Password" required="">
+                <input type="password" name="txt_rePw" id="txt_rePw" class="form-control" placeholder="Repeat Password" required="">
             </div>
 
 
@@ -60,6 +57,13 @@
             </div>
 
         </form>
+
+        <div class="message-wrapper">
+            <% if(locals.errorMessage) {%>
+                <p class="error"><%= locals.errorMessage%></p>
+            <%}%>
+        </div>
+
     </div>
 
 </div>

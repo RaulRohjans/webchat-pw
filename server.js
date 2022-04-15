@@ -4,31 +4,29 @@ require('dotenv').config()
 const express = require('express')
 const jwt = require('jsonwebtoken')
 const mysql = require('mysql')
+const cookieParser = require('cookie-parser');
 const app = express()
 
 //Uses
 app.use(express.static("public")) //Make static files available
 app.use(express.urlencoded({ extended: true })) //Make body data accessible
 app.use(express.json()) //Allow json parsing
+app.use(cookieParser()); //Allow cookie parsing
 app.set('view engine', 'ejs') //Use EJS
 
 //Start Mysql
 const connection = mysql.createConnection({
-    host: 'localhost',
-    port: '3306',
-    user: 'root',
-    password: '12345',
-    database: 'pwchat'
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PW,
+    database: process.env.DB_NAME
 })
 
 
 //Routes
 app.get('/', authenticateToken, (req, res) => {
     res.render("index", {text: 'world'})
-})
-
-app.get('/test', authenticateToken, (req, res) => {
-    res.json(req.user);
 })
 
 const userRouter = require('./routes/users')
@@ -39,15 +37,16 @@ app.use(authRouter)
 
 //Functions
 function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization']
-    const token = authHeader && authHeader.split(' ')[1]
-
-    if(token === undefined)
+    if(!req.cookies)
         return res.redirect('/login')
 
-    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    if(!req.cookies['AuthToken'])
+        return res.redirect('/login')
+
+
+    jwt.verify(req.cookies['AuthToken'], process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if(err)
-            return res.sendStatus(403)
+            return res.redirect('/login?code=1011')
 
         req.user = user;
         next()
