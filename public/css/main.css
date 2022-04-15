@@ -1,0 +1,44 @@
+@font-face {
+    font-family: Kathaline;
+    src: url('../fonts/Kathaline.ttf');
+}
+
+.logo {
+    font-family: 'Kathaline', serif;
+}
+
+.card-section {
+    margin-top: 32px;
+}
+
+.card-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.card-item {
+    background-color: white;
+    -moz-box-shadow: 0 0 5px #ccc;
+    -webkit-box-shadow: 0 0 5px #ccc;
+    box-shadow: 0 0 3px #ccc;
+    padding: 4% 8%;
+    cursor: pointer;
+}
+
+.card-item p {
+    font-size: 22px;
+    margin-top: 14px;
+}
+
+.card-item img {
+    max-width: 70px;
+}
+
+.inner-card-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-width: 120px;
+    min-height: 133px;
+    text-align: center;
+}

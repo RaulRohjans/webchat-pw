@@ -29,11 +29,13 @@ app.get('/', authenticateToken, (req, res) => {
     res.render("index", {text: 'world'})
 })
 
-const userRouter = require('./routes/users')
-app.use('/users', userRouter)
-
 const authRouter = require('./routes/auth')
 app.use(authRouter)
+
+const chatRouter = require('./routes/chats')
+app.use('/chats', chatRouter)
+
+
 
 //Functions
 function authenticateToken(req, res, next) {
