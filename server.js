@@ -26,11 +26,14 @@ const connection = mysql.createConnection({
 
 //Routes
 app.get('/', authenticateToken, (req, res) => {
-    res.render("index", {text: 'world'})
+    res.render("index", {username: req.user.username, isAdmin: req.user.isAdmin})
 })
 
 const authRouter = require('./routes/auth')
 app.use(authRouter)
+
+const apiRouter = require('./routes/api')
+app.use('/api', apiRouter)
 
 const chatRouter = require('./routes/chats')
 app.use('/chats', chatRouter)

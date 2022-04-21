@@ -48,52 +48,69 @@ router.post('/login', async (req, res) => {
     let queryResult
 
     //Redirect to main page if logged in
-    if (isLoggedIn(req))
+    if (isLoggedIn(req)){
         res.redirect('/')
+        return
+    }
+
 
     //Check if fields are filled
-    if (!req.body.inputEmail || !req.body.inputPassword) {
+    if (!req.body.inputLogin || !req.body.inputPassword) {
         res.status(400).render("auth/login",
             {
                 errorMessage: "Please fill in the missing fields.",
-                inputEmail: req.body.inputEmail
+                inputLogin: req.body.inputLogin
             })
         return
     }
 
 
     //Get user account
-    queryResult = await new Promise(async (resolve, reject) => {
-        connection.query("SELECT * FROM user WHERE email = ?",
-            [
-                req.body.inputEmail
-            ],
-            (err, result, fields) => {
-                resolve({err: err, result: result})
-            })
-    })
+    if(req.body.inputLogin.includes('@')){
+        queryResult = await new Promise(async (resolve, reject) => {
+            connection.query("SELECT * FROM user WHERE email = ? and deleted = 0",
+                [
+                    req.body.inputLogin.trim()
+                ],
+                (err, result, fields) => {
+                    resolve({err: err, result: result})
+                })
+        })
+    }
+    else{
+        queryResult = await new Promise(async (resolve, reject) => {
+            connection.query("SELECT * FROM user WHERE username = ? and deleted = 0",
+                [
+                    req.body.inputLogin.trim()
+                ],
+                (err, result, fields) => {
+                    resolve({err: err, result: result})
+                })
+        })
+    }
+
 
     if(queryResult.err){
         res.status(500).render("auth/login", {errorMessage: queryResult.err.code + ":\n" + queryResult.err.sqlMessage})
-        throw new queryResult.err
+        return
     }
     //Error if it does not exist
     if(queryResult.result.length < 1){
         res.status(400).render("auth/login",
             {
                 errorMessage: "Invalid login credentials.",
-                inputEmail: req.body.inputEmail
+                inputLogin: req.body.inputLogin
             })
         return
     }
 
     //Check if password is correct
-    if(crypto.createHash('sha256').update(req.body.inputPassword).digest('hex') !==
+    if(crypto.createHash('sha256').update(req.body.inputPassword.trim()).digest('hex') !==
         queryResult.result[0].password){
         res.status(400).render("auth/login",
             {
                 errorMessage: "Invalid login credentials.",
-                inputEmail: req.body.inputEmail
+                inputLogin: req.body.inputLogin
             })
         return
     }
@@ -103,7 +120,9 @@ router.post('/login', async (req, res) => {
         username: queryResult.result[0].username,
         email: queryResult.result[0].email,
         password: queryResult.result[0].password,
-        creation_date: queryResult.result[0].creation_date
+        creation_date: queryResult.result[0].creation_date,
+        deleted: queryResult.result[0].deleted[0],
+        isAdmin: queryResult.result[0].isAdmin[0]
     }
 
     //Check if user token has expired and stored in DB
@@ -117,10 +136,9 @@ router.post('/login', async (req, res) => {
             //If token is expired, check if there is an entry in the DB
             if(isValid){
                 let queryResult = await new Promise(async (resolve, reject) => {
-                    connection.query("SELECT token FROM token " +
-                        "INNER JOIN user ON user.idUser = token.idToken WHERE user.email = ?",
+                    connection.query("SELECT token FROM token WHERE user=?",
                         [
-                            req.body.inputEmail
+                            queryResult.result[0].idUser
                         ],
                         (err, result, fields) => {
                             resolve({err: err, result: result})
@@ -129,7 +147,7 @@ router.post('/login', async (req, res) => {
 
                 if(queryResult.err){
                     res.status(500).render("auth/login", {errorMessage: queryResult.err.code + ":\n" + queryResult.err.sqlMessage})
-                    throw new queryResult.err
+                    return
                 }
                 //Error if it does not exist
                 if(queryResult.result.length > 0){
@@ -163,7 +181,7 @@ router.post('/login', async (req, res) => {
 
         if(queryResult.err){
             res.status(500).render("auth/login", {errorMessage: queryResult.err.code + ":\n" + queryResult.err.sqlMessage})
-            throw new queryResult.err
+            return
         }
 
         //Save token in cookie
@@ -177,6 +195,7 @@ router.get('/register', (req, res) => {
     //Redirect to main page if logged in
     if(isLoggedIn(req)){
         res.redirect('/')
+        return
     }
     res.render("auth/register")
 });
@@ -185,8 +204,11 @@ router.post('/register', async (req, res) => {
     let queryResult
 
     //Redirect to main page if logged in
-    if (isLoggedIn(req))
+    if (isLoggedIn(req)){
         res.redirect('/')
+        return
+    }
+
 
     //Check if all the fields have data
     if(!req.body.txt_email || !req.body.txt_username || !req.body.txt_pw || !req.body.txt_rePw){
@@ -201,9 +223,9 @@ router.post('/register', async (req, res) => {
 
     //Check if username is in use
     queryResult = await new Promise(async (resolve, reject) => {
-        connection.query("SELECT COUNT(*) as usrCount FROM user WHERE username = ?",
+        connection.query("SELECT COUNT(*) as usrCount FROM user WHERE username = ? and deleted = 0",
             [
-                req.body.txt_username
+                req.body.txt_username.trim()
             ],
             (err, result, fields) => {
                 resolve({err: err, result: result})
@@ -212,7 +234,7 @@ router.post('/register', async (req, res) => {
 
     if(queryResult.err){
         res.status(500).render("auth/register", {errorMessage: queryResult.err.code + ":\n" + queryResult.err.sqlMessage})
-        throw new queryResult.err
+        return
     }
     if (parseInt(queryResult.result[0].usrCount) > 0) {
         res.status(400).render("auth/register",
@@ -227,9 +249,9 @@ router.post('/register', async (req, res) => {
 
     //Check if email is in use
     queryResult = await new Promise(async (resolve, reject) => {
-        connection.query("SELECT COUNT(*) as usrCount FROM user WHERE email = ?",
+        connection.query("SELECT COUNT(*) as usrCount FROM user WHERE email = ? and deleted = 0",
             [
-                req.body.txt_email
+                req.body.txt_email.trim()
             ],
             (err, result, fields) => {
                 resolve({err: err, result: result})
@@ -238,8 +260,7 @@ router.post('/register', async (req, res) => {
 
     if(queryResult.err){
         res.status(500).render("auth/register", {errorMessage: queryResult.err.code + ":\n" + queryResult.err.sqlMessage})
-        connection.end()
-        throw new queryResult.err
+        return
     }
     if (parseInt(queryResult.result[0].usrCount) > 0) {
         res.status(400).render("auth/register",
@@ -268,9 +289,9 @@ router.post('/register', async (req, res) => {
     queryResult = await new Promise(async (resolve, reject) => {
         connection.query("INSERT INTO user(username, email, password, creation_date) VALUES(?, ?, ?, ?)",
             [
-                req.body.txt_username,
-                req.body.txt_email,
-                crypto.createHash('sha256').update(req.body.txt_pw).digest('hex'),
+                req.body.txt_username.trim(),
+                req.body.txt_email.trim(),
+                crypto.createHash('sha256').update(req.body.txt_pw.trim()).digest('hex'),
                 new Date()
             ],
             (err, result, fields) => {
@@ -280,7 +301,7 @@ router.post('/register', async (req, res) => {
 
     if(queryResult.err){
         res.status(500).render("auth/register", {errorMessage: queryResult.err.code + ":\n" + queryResult.err.sqlMessage})
-        throw new queryResult.err
+        return
     }
 
     res.redirect('/login?code=1001')
@@ -310,7 +331,7 @@ router.get('/logout', async (req, res) => {
     })
     if(queryResult.err){
         res.status(500).send("Error 500")
-        throw new queryResult.err
+        return
     }
 
     res.clearCookie('AuthToken') //Remove cookie from browser
