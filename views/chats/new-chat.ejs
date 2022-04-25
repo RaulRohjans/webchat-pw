@@ -64,6 +64,7 @@
                     <div class="form-group">
                         <label for="txt_logo">Logo</label>
                         <input type="file" accept=".gif,.jpg,.jpeg,.png" class="form-control" id="file_logo" name="file_logo" placeholder="Logo">
+                        <small class="form-text text-muted">We recommend a square image, with an aspect ratio of 1:1.</small>
                     </div>
                 </div>
 
@@ -99,26 +100,15 @@
     $(document).ready(() => {
         $('#usrSelect').selectpicker();
 
-        $.get("/api/users", (data, status) => {
-            if(status === 'success'){
-                const select = document.getElementById("slt_users");
-                for(const user of data.users){
-                    $('#usrSelect').append('<option value="'+user.idUser+'">'+user.username+'</option>');
-                }
-                $("#usrSelect").selectpicker("refresh");
-                $('.bs-select-all').html("All");
-                $('.bs-deselect-all').html("Nothing");
+        const select = document.getElementById("slt_users");
+        let userList = <%- JSON.stringify(locals.users)%>;
 
-            }
-            else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'There has been an error fetching the users!'
-                });
-            }
-
-        });
+        for(const user of userList){
+            $('#usrSelect').append('<option value="'+user.idUser+'">'+user.username+'</option>');
+        }
+        $("#usrSelect").selectpicker("refresh");
+        $('.bs-select-all').html("All");
+        $('.bs-deselect-all').html("Nothing");
 
 
     })

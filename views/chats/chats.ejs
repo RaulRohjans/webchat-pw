@@ -23,9 +23,6 @@
             integrity="sha256-HwWONEZrpuoh951cQD1ov2HUK5zA5DwJ1DNUXaM6FsY="
             crossorigin="anonymous"></script>
 
-    <style>
-
-    </style>
 </head>
 <body>
 <nav class="navbar navbar-expand-lg bg-dark navbar-dark">
@@ -51,6 +48,63 @@
         </div>
     </div>
 </nav>
+
+<section class="main-section">
+    <div class="container list-item-container">
+        <h1 class="mychats-title">My Chats</h1>
+        <%for(let i = 0; i < locals.chats.length; i++) {%>
+            <a href="/chats/<%= locals.chats[i].idChat%>">
+                <div class="row list-item">
+                    <!-- Chat Logo -->
+                    <div class="col-md-auto">
+                        <%if(locals.chats[i].image) {%>
+                            <img class="rounded my-auto chat-image" src="/user-images/<%= locals.chats[i].image%>" alt="chat logo">
+                        <%} else {%>
+                            <img class="rounded my-auto" src="favicon.ico" alt="chat logo">
+                        <%}%>
+                    </div>
+
+                    <!-- Title -->
+                    <div class="col my-auto">
+                        <%if(locals.chats[i].name.length > 30){%>
+                            <h5 class="my-auto"><%= locals.chats[i].name.substr(0, 30) + "..."%></h5>
+                        <%} else {%>
+                            <h5 class="my-auto"><%= locals.chats[i].name%></h5>
+                        <%}%>
+
+
+                        <%if(locals.chats[i].description){%>
+                            <%if(locals.chats[i].description.length > 30){%>
+                                <p class="my-auto"><%= locals.chats[i].description.substr(0, 30) + "..."%></p>
+                            <%} else {%>
+                                <p class="my-auto"><%= locals.chats[i].description%></p>
+                            <%}%>
+                        <%}%>
+                    </div>
+
+                    <!-- Leave Icon -->
+                    <div class="col my-auto">
+                        <div class="d-flex flex-row-reverse">
+                            <img id="leave<%= locals.chats[i].idChat%>" class="my-auto exit-icon" src="icons/logout.svg" alt="leave chat">
+                            <img id="edit<%= locals.chats[i].idChat%>" class="my-auto edit-icon" src="icons/edit.svg" alt="edit chat">
+                        </div>
+                        <script>
+                            $("#leave<%= locals.chats[i].idChat%>").click(function() {
+                                alert( 'You clicked me' );
+                                window.location.replace("https://rohjans.live");
+                            });
+
+                            $("#edit<%= locals.chats[i].idChat%>").click(function() {
+                                window.location.href = 'https://www.google.com'
+                            });
+                        </script>
+                    </div>
+                </div>
+            </a>
+        <%}%>
+
+    </div>
+</section>
 
 </body>
 </html>
