@@ -38,6 +38,9 @@ router.get('/login', (req, res) => {
         case "1011":
             res.render("auth/login", {errorMessage: "Your session has expired."})
             break
+        case "2834":
+            res.render("auth/login", {errorMessage: "Your has been deleted."})
+            break
         default:
             res.render("auth/login")
             break
@@ -120,6 +123,12 @@ router.post('/login', async (req, res) => {
         username: queryResult.result[0].username,
         email: queryResult.result[0].email,
         password: queryResult.result[0].password,
+        first_name: queryResult.result[0].first_name,
+        last_name: queryResult.result[0].last_name,
+        phone: queryResult.result[0].phone,
+        birthdate: queryResult.result[0].birthdate,
+        image: queryResult.result[0].image,
+        color: queryResult.result[0].color,
         creation_date: queryResult.result[0].creation_date,
         deleted: queryResult.result[0].deleted[0],
         isAdmin: queryResult.result[0].isAdmin[0]
@@ -209,9 +218,8 @@ router.post('/register', async (req, res) => {
         return
     }
 
-
     //Check if all the fields have data
-    if(!req.body.txt_email || !req.body.txt_username || !req.body.txt_pw || !req.body.txt_rePw){
+    if(!req.body.txt_email || !req.body.txt_username || !req.body.txt_pw || !req.body.txt_rePw || !req.body.color){
         res.status(400).render("auth/register",
             {
                 errorMessage: "Please fill in the missing fields.",
@@ -287,12 +295,13 @@ router.post('/register', async (req, res) => {
 
     //Add new user to DB
     queryResult = await new Promise(async (resolve, reject) => {
-        connection.query("INSERT INTO user(username, email, password, creation_date) VALUES(?, ?, ?, ?)",
+        connection.query("INSERT INTO user(username, email, password, creation_date, color) VALUES(?, ?, ?, ?, ?)",
             [
                 req.body.txt_username.trim(),
                 req.body.txt_email.trim(),
                 crypto.createHash('sha256').update(req.body.txt_pw.trim()).digest('hex'),
-                new Date()
+                new Date(),
+                req.body.color
             ],
             (err, result, fields) => {
                 resolve({err: err, result: result})

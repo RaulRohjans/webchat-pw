@@ -38,6 +38,9 @@ app.use('/api', apiRouter)
 const chatRouter = require('./routes/chats')
 app.use('/chats', chatRouter)
 
+const settingsRouter = require('./routes/settings')
+app.use('/settings', settingsRouter)
+
 
 
 //Functions
@@ -52,6 +55,9 @@ function authenticateToken(req, res, next) {
     jwt.verify(req.cookies['AuthToken'], process.env.ACCESS_TOKEN_SECRET, (err, user) => {
         if(err)
             return res.redirect('/login?code=1011')
+
+        if(user.deleted)
+            return res.redirect('/login?code=2834')
 
         req.user = user;
         next()

@@ -59,11 +59,19 @@
                                         <%for(const user of locals.users) {%>
                                             <li class="person" id="<%= user.username%>">
                                                 <div class="user">
-                                                    <img src="https://www.bootdey.com/img/Content/avatar/avatar3.png" alt="Retail Admin">
+                                                    <%if(user.image) {%>
+                                                        <img src="/user-images/<%= user.image%>" alt="Retail Admin">
+                                                    <%} else {%>
+                                                        <img src="/images/user-default.png" alt="Retail Admin">
+                                                    <%}%>
                                                     <span class="status busy"></span>
                                                 </div>
                                                 <p class="name-time">
-                                                    <span class="name"><%= user.name.replace(/\w/, c => c.toUpperCase())%> (<%= user.username%>)</span>
+                                                    <%if(user.first_name) {%>
+                                                        <span class="name"><%= user.first_name.replace(/\w/, c => c.toUpperCase())%> <%= user.last_name.replace(/\w/, c => c.toUpperCase())%> (<%= user.username%>)</span>
+                                                    <%} else {%>
+                                                        <span class="name"><%= user.username%></span>
+                                                    <%}%>
                                                 </p>
                                             </li>
                                         <%}%>
@@ -93,7 +101,7 @@
 
                                         <div class="col my-auto">
                                             <div class="row my-auto">
-                                                <span class="name">Emily Russell</span>
+                                                <span class="name"><%= locals.chat.name%></span>
                                             </div>
 
                                             <div class="row my-auto">

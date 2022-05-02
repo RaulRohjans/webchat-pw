@@ -58,3 +58,8 @@ h2 {
 .success {
     color: green;
 }
+
+.color {
+    padding: 0 !important;
+    width: 25px !important;
+}

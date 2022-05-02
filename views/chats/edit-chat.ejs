@@ -53,12 +53,12 @@
 
 <div class="jumbotron d-flex align-items-center min-vh-100">
     <div class="container new-chat-wrapper">
-        <form method="POST" action="/chats/new" enctype="multipart/form-data">
+        <form method="POST" action="/chats/<%= locals.chat.idChat%>/edit" enctype="multipart/form-data">
             <div class="row">
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="txt_title">Title<span style="color: red">*</span></label>
-                        <input type="text" class="form-control" id="txt_title" name="txt_title" placeholder="Title" required>
+                        <input type="text" class="form-control" id="txt_title" value="<%= locals.chat.name%>" name="txt_title" placeholder="Title" required>
                     </div>
 
                     <div class="form-group">
@@ -70,7 +70,7 @@
 
                 <div class="form-group col-md-6">
                     <label for="txt_description">Description</label>
-                    <textarea class="form-control" style="resize: none;" id="txt_description" name="txt_description" placeholder="Description" rows="4"></textarea>
+                    <textarea class="form-control" style="resize: none;" id="txt_description" name="txt_description" placeholder="Description" rows="4"><%= locals.chat.name%></textarea>
                 </div>
             </div>
 
@@ -82,7 +82,7 @@
                     </select>
                 </div>
             </div>
-            <button type="submit" class="btn btn-secondary">Create Chat</button>
+            <button type="submit" class="btn btn-secondary">Edit Chat</button>
         </form>
 
         <div class="message-wrapper">
@@ -102,13 +102,21 @@
 
         const select = document.getElementById("slt_users");
         let userList = <%- JSON.stringify(locals.users)%>;
+        let selectedUserList = <%- JSON.stringify(locals.selectUsers)%>;
 
+        //Add all values
         for(const user of userList){
             $('#usrSelect').append('<option value="'+user.idUser+'">'+user.username+'</option>');
         }
+
+        //Refresh
         $("#usrSelect").selectpicker("refresh");
         $('.bs-select-all').html("All");
         $('.bs-deselect-all').html("Nothing");
+
+        //Select users
+        $("#usrSelect").val(selectedUserList.map(x => x.idUser));
+        $("#usrSelect").selectpicker("refresh");
 
 
     })
