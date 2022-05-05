@@ -48,79 +48,116 @@
 </nav>
 
 <section class="main-section">
-    <div class="container list-item-container">
-        <h1 class="mychats-title">My Chats</h1>
-        <%for(let i = 0; i < locals.chats.length; i++) {%>
-            <a href="/chats/<%= locals.chats[i].idChat%>">
-                <div class="row list-item">
-                    <!-- Chat Logo -->
-                    <div class="col-md-auto">
-                        <%if(locals.chats[i].image) {%>
-                            <img class="rounded my-auto chat-image" src="/user-images/<%= locals.chats[i].image%>" alt="chat logo">
-                        <%} else {%>
-                            <img class="rounded my-auto" src="favicon.ico" alt="chat logo">
-                        <%}%>
-                    </div>
+    <div class="container-lg" style="margin:0 10%">
+        <div class="row">
+            <!-- Group Chats -->
+            <div class="col list-item-container">
+                <h1 class="mychats-title">Group Chats</h1>
+                <%for(const pubChat of locals.publicChats) {%>
+                    <a href="/chats/<%= pubChat.idChat%>">
+                        <div class="row list-item">
+                            <!-- Chat Logo -->
+                            <div class="col-md-auto">
+                                <%if(pubChat.image) {%>
+                                    <img class="rounded my-auto chat-image" src="/user-images/<%= pubChat.image%>" alt="chat logo">
+                                <%} else {%>
+                                    <img class="rounded my-auto" src="favicon.ico" alt="chat logo">
+                                <%}%>
+                            </div>
 
-                    <!-- Title -->
-                    <div class="col my-auto">
-                        <%if(locals.chats[i].name.length > 30){%>
-                            <h5 class="my-auto"><%= locals.chats[i].name.substr(0, 30) + "..."%></h5>
-                        <%} else {%>
-                            <h5 class="my-auto"><%= locals.chats[i].name%></h5>
-                        <%}%>
+                            <!-- Title -->
+                            <div class="col my-auto">
+                                <%if(pubChat.name.length > 30){%>
+                                    <h5 class="my-auto"><%= pubChat.name.substr(0, 30) + "..."%></h5>
+                                <%} else {%>
+                                    <h5 class="my-auto"><%= pubChat.name%></h5>
+                                <%}%>
 
 
-                        <%if(locals.chats[i].description){%>
-                            <%if(locals.chats[i].description.length > 30){%>
-                                <p class="my-auto"><%= locals.chats[i].description.substr(0, 30) + "..."%></p>
-                            <%} else {%>
-                                <p class="my-auto"><%= locals.chats[i].description%></p>
-                            <%}%>
-                        <%}%>
-                    </div>
+                                <%if(pubChat.description){%>
+                                    <%if(pubChat.description.length > 30){%>
+                                        <p class="my-auto"><%= pubChat.description.substr(0, 30) + "..."%></p>
+                                    <%} else {%>
+                                        <p class="my-auto"><%= pubChat.description%></p>
+                                    <%}%>
+                                <%}%>
+                            </div>
 
-                    <!-- Leave Icon -->
-                    <div class="col my-auto">
-                        <div class="d-flex flex-row-reverse">
-                            <img id="leave<%= locals.chats[i].idChat%>" class="my-auto exit-icon" src="icons/logout.svg" alt="leave chat">
-                            <img id="edit<%= locals.chats[i].idChat%>" class="my-auto edit-icon" src="icons/edit.svg" alt="edit chat">
-                        </div>
+                            <!-- Leave Icon -->
+                            <div class="col my-auto">
+                                <div class="d-flex flex-row-reverse">
+                                    <img id="leave<%= pubChat.idChat%>" class="my-auto exit-icon" src="icons/logout.svg" alt="leave chat">
+                                    <img id="edit<%= pubChat.idChat%>" class="my-auto edit-icon" src="icons/edit.svg" alt="edit chat">
+                                </div>
 
-                        <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-                        <script>
-                            $("#leave<%= locals.chats[i].idChat%>").click(function() {
-                                Swal.fire({
-                                    title: 'Are you sure?',
-                                    text: "Are you sure you want to leave this chat? You won't be able to join on you own after leaving!",
-                                    icon: 'warning',
-                                    showCancelButton: true,
-                                    confirmButtonColor: '#3085d6',
-                                    cancelButtonColor: '#d33',
-                                    confirmButtonText: 'Yes, leave!'
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        $.ajax({
-                                            url: '/chats/<%= locals.chats[i].idChat%>/leave',
-                                            type: 'post',
-                                            success: function(result) {
-                                                window.location.replace("/chats")
+                                <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+                                <script>
+                                    $("#leave<%= pubChat.idChat%>").click(function() {
+                                        Swal.fire({
+                                            title: 'Are you sure?',
+                                            text: "Are you sure you want to leave this chat? You won't be able to join on you own after leaving!",
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#3085d6',
+                                            cancelButtonColor: '#d33',
+                                            confirmButtonText: 'Yes, leave!'
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                $.ajax({
+                                                    url: '/chats/<%= pubChat.idChat%>/leave',
+                                                    type: 'post',
+                                                    success: function(result) {
+                                                        window.location.replace("/chats")
+                                                    }
+                                                });
                                             }
-                                        });
-                                    }
-                                })
-                                return false
-                            });
+                                        })
+                                        return false
+                                    });
 
-                            $("#edit<%= locals.chats[i].idChat%>").click(function() {
-                                window.location.href = "/chats/<%= locals.chats[i].idChat%>/edit";
-                                return false
-                            });
-                        </script>
-                    </div>
-                </div>
-            </a>
-        <%}%>
+                                    $("#edit<%= pubChat.idChat%>").click(function() {
+                                        window.location.href = "/chats/<%= pubChat.idChat%>/edit";
+                                        return false
+                                    });
+                                </script>
+                            </div>
+                        </div>
+                    </a>
+                <%}%>
+            </div>
+
+            <!-- Private Chats -->
+            <div class="col-md-auto list-item-container">
+                <h1 class="mychats-title">Private Chats</h1>
+                <%for(const prvChat of locals.privateChats) {%>
+                    <a href="/chats/<%= prvChat.idChat%>">
+                        <div class="row list-item">
+                            <!-- Chat Logo -->
+                            <div class="col-md-auto">
+                                <%if(prvChat.image) {%>
+                                    <img class="rounded my-auto chat-image rounded-circle" src="/user-images/<%= prvChat.image%>" alt="user logo">
+                                <%} else {%>
+                                    <img class="rounded my-auto rounded-circle" src="/images/user-default.png" alt="user logo">
+                                <%}%>
+                            </div>
+
+                            <!-- Title -->
+                            <div class="col my-auto prv-title-wrapper">
+                                <%if(prvChat.first_name || prvChat.last_name) {%>
+                                    <h5 class="my-auto"><%= prvChat.first_name.replace(/\w/, c => c.toUpperCase()) + " " +
+                                        prvChat.last_name.replace(/\w/, c => c.toUpperCase()) +
+                                        " (" + prvChat.username + ")"%></h5>
+                                <%} else {%>
+                                    <h5 class="my-auto"><%= prvChat.username%></h5>
+                                <%}%>
+                            </div>
+
+                        </div>
+                    </a>
+                <%}%>
+            </div>
+
+        </div>
 
     </div>
 </section>

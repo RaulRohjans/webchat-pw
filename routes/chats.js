@@ -34,10 +34,10 @@ const upload = multer({
 })
 
 router.get('/', authenticateToken, async (req, res) => {
-    //Get chats from DB
+    //Get group chats from DB
     let queryResult = await new Promise(async (resolve, reject) => {
         connection.query("SELECT * FROM chat inner join chat_user on chat.idChat=chat_user.idChat WHERE chat_user.idUser" +
-            " = ? and chat.deleted = 0",
+            " = ? and chat.deleted = 0 and chat.private = 0",
             [
                 req.user.idUser
             ],
@@ -51,9 +51,37 @@ router.get('/', authenticateToken, async (req, res) => {
         + queryResult.err.sqlMessage)
         return
     }
+    const pubChats = queryResult.result;
+
+    //Get private chats from DB (without current user info)
+    queryResult = await new Promise(async (resolve, reject) => {
+        connection.query("SELECT user.*, chat.idChat FROM user " +
+            "INNER JOIN chat_user ON chat_user.idUser = user.idUser " +
+            "INNER JOIN chat ON chat_user.idChat = chat.idChat " +
+            "WHERE chat.deleted = 0 " +
+            "AND chat.private = 1 " +
+            "AND user.deleted = 0 " +
+            "AND chat_user.idUser != ? " +
+            "AND chat_user.idChat IN (select idChat from chat_user where idUser = ?)",
+            [
+                req.user.idUser,
+                req.user.idUser
+            ],
+            (err, result, fields) => {
+                resolve({err: err, result: result})
+            })
+    })
+
+    if (queryResult.err) {
+        res.status(500).send("An error has occurred while loading the page.\n" + queryResult.err.code + ":\n"
+            + queryResult.err.sqlMessage)
+        return
+    }
+    const prvChats = queryResult.result;
+    console.log(prvChats)
 
 
-    res.render("chats/chats", {chats: queryResult.result})
+    res.render("chats/chats", {publicChats: pubChats, privateChats: prvChats})
 });
 
 router.get('/new', authenticateToken, async (req, res) => {

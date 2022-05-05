@@ -119,13 +119,23 @@ h1{
 }
 
 .list-item-container {
-    padding: 32px 38px !important;
+    padding: 28px 32px !important;
     border-radius: 3px;
     background-color: white;
+    margin: 0 18px !important;
 
     -moz-box-shadow: 0 0 5px #ccc;
     -webkit-box-shadow: 0 0 5px #ccc;
     box-shadow: 0 0 8px #ccc;
+}
+
+.rounded-circle {
+    border-radius: 50% !important;
+    max-height: 48px;
+}
+
+.prv-title-wrapper {
+    max-width: 300px;
 }
 
 .list-item-container a {
