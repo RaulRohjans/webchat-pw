@@ -59,10 +59,10 @@ router.get('/', authenticateToken, async (req, res) => {
             "INNER JOIN chat_user ON chat_user.idUser = user.idUser " +
             "INNER JOIN chat ON chat_user.idChat = chat.idChat " +
             "WHERE chat.deleted = 0 " +
-            "AND chat.private = 1 " +
             "AND user.deleted = 0 " +
             "AND chat_user.idUser != ? " +
-            "AND chat_user.idChat IN (select idChat from chat_user where idUser = ?)",
+            "AND chat_user.idChat IN (select chat_user.idChat from chat_user inner join chat on chat.idChat = chat_user.idChat where idUser = ? and chat.private = 1) " +
+            "ORDER BY user.username",
             [
                 req.user.idUser,
                 req.user.idUser
@@ -78,8 +78,6 @@ router.get('/', authenticateToken, async (req, res) => {
         return
     }
     const prvChats = queryResult.result;
-    console.log(prvChats)
-
 
     res.render("chats/chats", {publicChats: pubChats, privateChats: prvChats})
 });
@@ -194,6 +192,113 @@ router.post('/new', authenticateToken, upload.single('file_logo'), async (req, r
 
     res.render("chats/new-chat", {successMessage: "Chat created successfully!"})
 });
+
+router.get('/new-private/:idUser', authenticateToken, async (req, res) => {
+    //Check if user id is valid
+    let queryResult = await new Promise(async (resolve, reject) => {
+        connection.query("SELECT count(*) as cnt from user WHERE idUser = ? and deleted = 0",
+            [
+                req.params.idUser
+            ],
+            (err, result, fields) => {
+                resolve({err: err, result: result})
+            })
+    })
+
+    if(queryResult.err){
+        res.status(500).send("An error has occurred while creating the chat " +
+            queryResult.err.code + ":\n" + queryResult.err.sqlMessage)
+        return
+    }
+    if(queryResult.result[0].cnt < 1) {
+        res.redirect('/chats');
+    }
+
+    //Check if there is a private chat with the current user
+    queryResult = await new Promise(async (resolve, reject) => {
+        connection.query("SELECT chat_user.idChat as idChat FROM chat_user WHERE " +
+            "chat_user.idChat IN (select chat_user.idChat from chat_user inner join chat on chat.idChat = chat_user.idChat where chat_user.idUser = ? and chat.private = 1) " +
+            "and chat_user.idUser = ?",
+            [
+                req.user.idUser,
+                req.params.idUser
+            ],
+            (err, result, fields) => {
+                resolve({err: err, result: result})
+            })
+    })
+
+    if(queryResult.err){
+        res.status(500).send("An error has occurred while creating the chat " +
+            queryResult.err.code + ":\n" + queryResult.err.sqlMessage)
+        return
+    }
+    if(queryResult.result.length > 0){
+        res.redirect('/chats/' + queryResult.result[0].idChat);
+        return
+    }
+
+    //Generate ID
+    let newID = 1;
+    queryResult = await new Promise(async (resolve, reject) => {
+        connection.query("SELECT idChat FROM chat ORDER BY idChat DESC LIMIT 1",
+            (err, result, fields) => {
+                resolve({err: err, result: result})
+            })
+    })
+
+    if(queryResult.err){
+        res.status(500).send("An error has occurred while creating the chat " +
+            queryResult.err.code + ":\n" + queryResult.err.sqlMessage)
+        return
+    }
+    if(queryResult.result[0])
+        newID = parseInt(queryResult.result[0].idChat) + 1
+
+    //Create new chat
+    queryResult = await new Promise(async (resolve, reject) => {
+        connection.query("INSERT INTO chat(idChat, creation_date, private) values(?, ? ,1)",
+            [
+                newID,
+                new Date()
+            ],
+            (err, result, fields) => {
+                resolve({err: err, result: result})
+            })
+    })
+
+    if (queryResult.err) {
+        res.status(500).send("An error has occurred while creating the chat.\n" + queryResult.err.code + ":\n"
+            + queryResult.err.sqlMessage)
+        return
+    }
+
+
+    //Add both users to new chat
+    for(const idUser of [req.user.idUser, req.params.idUser]){
+        queryResult = await new Promise(async (resolve, reject) => {
+            connection.query("INSERT INTO chat_user(idUser, idChat, useradded_date) VALUES(?, ?, ?)",
+                [
+                    idUser,
+                    newID,
+                    new Date()
+                ],
+                (err, result, fields) => {
+                    resolve({err: err, result: result})
+                })
+        })
+
+        if (queryResult.err) {
+            res.status(500).send("An error has occurred while creating the chat.\n" + queryResult.err.code + ":\n"
+                    + queryResult.err.sqlMessage)
+            return
+        }
+    }
+
+    res.redirect('/chats/' + newID);
+});
+
+
 
 router.get('/:chatId', authenticateToken, async (req, res) => {
 

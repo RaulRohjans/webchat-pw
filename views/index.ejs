@@ -98,6 +98,7 @@
         }
     </script>
 
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const animateCSS = (element, animation, prefix = 'animate__') =>
             // We create a Promise and return it
@@ -127,7 +128,85 @@
         });
 
         $("#start-chat-card").click(() => {
-            window.location.replace("/chats/new");
+            Swal.fire({
+                title: 'Which type of chat do you want to start?',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Group Chat',
+                denyButtonText: `Private Chat`,
+                denyButtonColor: '#457B9D',
+            }).then((result) => {
+                /* Read more about isConfirmed, isDenied below */
+                if (result.isConfirmed) {
+                    window.location.replace("/chats/new");
+                } else if (result.isDenied) {
+                    Swal.fire({
+                        title: 'Choose a User:',
+                        html: `<%for(const user of prvChatUsrs) {%>
+                                <a href="/chats/new-private/<%= user.idUser%>">
+                                    <div class="row list-item">
+                                        <!-- Chat Logo -->
+                                        <div class="col-md-auto">
+                                            <%if(user.image) {%>
+                                                <img class="rounded my-auto chat-image rounded-circle" src="/user-images/<%= user.image%>" alt="user logo">
+                                            <%} else {%>
+                                                <img class="rounded my-auto rounded-circle" src="/images/user-default.png" alt="user logo">
+                                            <%}%>
+                                        </div>
+
+                                        <!-- Title -->
+                                        <div class="col my-auto prv-title-wrapper">
+                                            <%if(user.first_name || user.last_name) {%>
+                                                <h5 class="my-auto"><%= user.first_name.replace(/\w/, c => c.toUpperCase()) + " " +
+                                                    user.last_name.replace(/\w/, c => c.toUpperCase()) +
+                                                    " (" + user.username + ")"%></h5>
+                                            <%} else {%>
+                                                <h5 class="my-auto"><%= user.username%></h5>
+                                            <%}%>
+                                        </div>
+
+                                    </div>
+                                </a>
+                                <%}%>`,
+                        showCancelButton: true,
+                        showDenyButton: false,
+                        showConfirmButton: false,
+                        focusConfirm: false,
+                        preConfirm: () => {
+                            const firstName = Swal.getPopup().querySelector('#firstName').value
+                            const lastName = Swal.getPopup().querySelector('#lastName').value
+                            const email = Swal.getPopup().querySelector('#email').value
+                            const departs = Swal.getPopup().querySelector('#users').value
+
+                            if (!firstName || !lastName || !email || !departs) {
+                                Swal.showValidationMessage(`Por favor preencha todos os campos.`)
+                            }
+                            return { firstName: firstName, lastName: lastName, email: email, departs: departs }
+                        }
+                    }).then((result) => {
+
+                        utilizadores.push({
+                            'id': id,
+                            'firstName': result.value.firstName,
+                            'lastName': result.value.lastName,
+                            'email': result.value.email,
+                            'departamento': result.value.departs
+                        });
+
+                        id++;
+
+                        localStorage.setItem("utilizadores", JSON.stringify(utilizadores));
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Utilizador Criado!'
+                        });
+
+                        carregarUtilizadores();
+                    });
+                }
+            })
+
         });
 
         $("#my-chats-card").on("mouseover", () => {

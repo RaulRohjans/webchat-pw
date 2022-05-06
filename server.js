@@ -25,8 +25,25 @@ const connection = mysql.createConnection({
 
 
 //Routes
-app.get('/', authenticateToken, (req, res) => {
-    res.render("index", {username: req.user.username, isAdmin: req.user.isAdmin})
+app.get('/', authenticateToken, async (req, res) => {
+    //Get users with no private chat with current user
+    let queryResult = await new Promise(async (resolve, reject) => {
+        connection.query("SELECT * FROM user WHERE idUser != ? and deleted = 0 ORDER BY username",
+            [
+                req.user.idUser
+            ],
+            (err, result, fields) => {
+                resolve({err: err, result: result})
+            })
+    })
+
+    if (queryResult.err) {
+        res.status(500).send("An error has occurred while loading the page.\n" + queryResult.err.code + ":\n"
+            + queryResult.err.sqlMessage)
+        return
+    }
+
+    res.render("index", {username: req.user.username, isAdmin: req.user.isAdmin, prvChatUsrs: queryResult.result})
 })
 
 const authRouter = require('./routes/auth')

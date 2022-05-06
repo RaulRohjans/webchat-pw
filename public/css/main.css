@@ -129,6 +129,16 @@ h1{
     box-shadow: 0 0 8px #ccc;
 }
 
+.swal2-html-container a {
+    text-decoration: none;
+    color: black;
+}
+
+.swal2-html-container a:hover {
+    text-decoration: none;
+    color: black;
+}
+
 .rounded-circle {
     border-radius: 50% !important;
     max-height: 48px;
