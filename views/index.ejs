@@ -36,7 +36,7 @@
             <div class="collapse navbar-collapse nav-mobile-menu" id="menu">
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a href="/chats/new" class="nav-link">Start a Chat</a>
+                        <a id="nav-start-chat" class="nav-link">Start a Chat</a>
                     </li>
                     <li class="nav-item">
                         <a href="/chats" class="nav-link">My Chats</a>
@@ -128,6 +128,14 @@
         });
 
         $("#start-chat-card").click(() => {
+            openChooser()
+        });
+
+        $("#nav-start-chat").click(() => {
+           openChooser();
+        });
+
+        function openChooser() {
             Swal.fire({
                 title: 'Which type of chat do you want to start?',
                 showDenyButton: true,
@@ -158,8 +166,8 @@
                                         <div class="col my-auto prv-title-wrapper">
                                             <%if(user.first_name || user.last_name) {%>
                                                 <h5 class="my-auto"><%= user.first_name.replace(/\w/, c => c.toUpperCase()) + " " +
-                                                    user.last_name.replace(/\w/, c => c.toUpperCase()) +
-                                                    " (" + user.username + ")"%></h5>
+                        user.last_name.replace(/\w/, c => c.toUpperCase()) +
+                        " (" + user.username + ")"%></h5>
                                             <%} else {%>
                                                 <h5 class="my-auto"><%= user.username%></h5>
                                             <%}%>
@@ -171,43 +179,11 @@
                         showCancelButton: true,
                         showDenyButton: false,
                         showConfirmButton: false,
-                        focusConfirm: false,
-                        preConfirm: () => {
-                            const firstName = Swal.getPopup().querySelector('#firstName').value
-                            const lastName = Swal.getPopup().querySelector('#lastName').value
-                            const email = Swal.getPopup().querySelector('#email').value
-                            const departs = Swal.getPopup().querySelector('#users').value
-
-                            if (!firstName || !lastName || !email || !departs) {
-                                Swal.showValidationMessage(`Por favor preencha todos os campos.`)
-                            }
-                            return { firstName: firstName, lastName: lastName, email: email, departs: departs }
-                        }
-                    }).then((result) => {
-
-                        utilizadores.push({
-                            'id': id,
-                            'firstName': result.value.firstName,
-                            'lastName': result.value.lastName,
-                            'email': result.value.email,
-                            'departamento': result.value.departs
-                        });
-
-                        id++;
-
-                        localStorage.setItem("utilizadores", JSON.stringify(utilizadores));
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Utilizador Criado!'
-                        });
-
-                        carregarUtilizadores();
+                        focusConfirm: false
                     });
                 }
             })
-
-        });
+        }
 
         $("#my-chats-card").on("mouseover", () => {
             animateCSS('#my-chats-card', 'tada');

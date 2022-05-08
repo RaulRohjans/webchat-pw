@@ -139,6 +139,10 @@ h1{
     color: black;
 }
 
+.nav-link {
+    cursor: pointer !important;
+}
+
 .rounded-circle {
     border-radius: 50% !important;
     max-height: 48px;
@@ -178,5 +182,10 @@ h1{
 }
 
 .chat-image {
+    max-height: 48px;
+}
+
+.swirl-rounded-circle {
+    border-radius: 50% !important;
     max-height: 48px;
 }

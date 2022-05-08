@@ -34,7 +34,7 @@
         <div class="collapse navbar-collapse" id="menu">
             <ul class="navbar-nav">
                 <li class="nav-item">
-                    <a href="/chats/new" class="nav-link">Start a Chat</a>
+                    <a id="nav-start-chat" class="nav-link">Start a Chat</a>
                 </li>
                 <li class="nav-item">
                     <a href="/chats" class="nav-link active">My Chats</a>
@@ -161,6 +161,72 @@
 
     </div>
 </section>
+
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    $("#nav-start-chat").click(() => {
+        openChooser();
+    });
+
+    function openChooser() {
+        Swal.fire({
+            title: 'Which type of chat do you want to start?',
+            showDenyButton: true,
+            showCancelButton: true,
+            confirmButtonText: 'Group Chat',
+            denyButtonText: `Private Chat`,
+            denyButtonColor: '#457B9D',
+        }).then((result) => {
+            /* Read more about isConfirmed, isDenied below */
+            if (result.isConfirmed) {
+                window.location.replace("/chats/new");
+            } else if (result.isDenied) {
+
+                $.get("/api/private-users", (data, status) => {
+                    if(status !== "success"){
+                        alert("Error getting users :(");
+                        return
+                    }
+                    console.log(data)
+
+                    let html = '';
+                    for(const user of JSON.parse(data)) {
+                        html += '<a href="/chats/new-private/' + user.idUser + '">' +
+                            '<div class="row list-item">' +
+                            '<div class="col-md-auto">';
+                        if(user.image) {
+                            html += '<img class="my-auto chat-image swirl-rounded-circle" src="/user-images/' + user.image + '" alt="user logo">';
+                        }
+                        else {
+                            html += '<img class="my-auto swirl-rounded-circle" src="/images/user-default.png" alt="user logo">';
+                        }
+                        html += '</div>'+
+                            '<div class="col my-auto prv-title-wrapper">';
+
+                        if(user.first_name || user.last_name) {
+                            html += '<h5 class="my-auto">' + user.first_name.replace(/\w/, c => c.toUpperCase()) + ' ' +
+                                user.last_name.replace(/\w/, c => c.toUpperCase()) +
+                                ' (' + user.username + ')</h5>';
+                        } else {
+                            html += '<h5 class="my-auto">' + user.username + '</h5>';
+                        }
+                        html += '</div></div></a>';
+                    }
+
+                    Swal.fire({
+                        title: 'Choose a User:',
+                        html: html,
+                        showCancelButton: true,
+                        showDenyButton: false,
+                        showConfirmButton: false,
+                        focusConfirm: false
+                    });
+                })
+            }
+        })
+    }
+
+</script>
 
 </body>
 </html>

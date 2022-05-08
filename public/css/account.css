@@ -85,3 +85,42 @@ body{
     height: 25px !important;
     border-radius: 30px !important;
 }
+
+.nav-link {
+    cursor: pointer !important;
+}
+
+.swirl-rounded-circle {
+    border-radius: 50% !important;
+    max-height: 48px;
+}
+
+.list-item {
+    width: 100%;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 24px auto !important;
+    background-color: rgba(86,61,124,.15);
+    border: 1px solid rgba(86,61,124,.2);
+
+    -webkit-transition: all .3s ease-in-out 0s;
+    -moz-transition: all .3s ease-in-out 0s;
+    -o-transition: all .3s ease-in-out 0s;
+    -ms-transition: all .3s ease-in-out 0s;
+    transition: all .3s ease-in-out 0s;
+}
+
+.list-item:hover {
+    padding: 7px 14px;
+}
+
+.swal2-html-container a {
+    text-decoration: none;
+    color: black;
+}
+
+.swal2-html-container a:hover {
+    text-decoration: none;
+    color: black;
+}

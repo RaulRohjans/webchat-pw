@@ -23,75 +23,47 @@ router.get('/ping', (req, res) => {
     res.status(200).json({"success": true})
 });
 
-router.get('/users', async (req, res) => {
-    let queryResult
-
-    //Return forbidden if not logged in
-    if (!isLoggedIn(req))
-        res.sendStatus(403)
-
-    //If normal account get username only
-    let user_list = []
-    if(!isAdmin(req)){
-        queryResult = await new Promise(async (resolve, reject) => {
-            connection.query("SELECT idUser, username FROM user WHERE deleted = 0",
-                (err, result, fields) => {
-                    resolve({err: err, result: result})
-                })
-        })
-
-        if(queryResult.err){
-            res.status(500).json({
-                "success": false,
-                "code": queryResult.err.code,
-                "message": queryResult.err.sqlMessage
+router.get('/private-users', authenticateToken, async (req, res) => {
+    //Get users with no private chat with current user
+    let queryResult = await new Promise(async (resolve, reject) => {
+        connection.query("SELECT idUser, first_name, last_name, username, image FROM user WHERE idUser != ? and deleted = 0 ORDER BY username",
+            [
+                req.user.idUser
+            ],
+            (err, result, fields) => {
+                resolve({err: err, result: result})
             })
-            return
-        }
+    })
 
-        for(const usr of queryResult.result){
-            user_list.push({
-                idUser: usr.idUser,
-                username: usr.username
-            })
-        }
-
-    }
-    else{ //else get all user info
-        queryResult = await new Promise(async (resolve, reject) => {
-            connection.query("SELECT * FROM user WHERE deleted = 0",
-                (err, result, fields) => {
-                    resolve({err: err, result: result})
-                })
-        })
-
-        if(queryResult.err){
-            res.status(500).json({
-                "success": false,
-                "code": queryResult.err.code,
-                "message": queryResult.err.sqlMessage
-            })
-            return
-        }
-
-        for(const usr of queryResult.result){
-            user_list.push({
-                idUser: usr.idUser,
-                username: usr.username,
-                email: usr.email,
-                password: usr.password,
-                creation_date: usr.creation_date,
-                deleted: usr.deleted[0],
-                isAdmin: usr.isAdmin[0]
-            })
-        }
+    if (queryResult.err) {
+        res.sendStatus(500)
+        return
     }
 
-    res.status(200).json({users: user_list})
+    res.status(200).json(JSON.stringify(queryResult.result))
 })
 
-
 //Functions
+function authenticateToken(req, res, next) {
+    if(!req.cookies)
+        return res.redirect('/login')
+
+    if(!req.cookies['AuthToken'])
+        return res.redirect('/login')
+
+
+    jwt.verify(req.cookies['AuthToken'], process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if(err)
+            return res.redirect('/login?code=1011')
+
+        if(user.deleted)
+            return res.redirect('/login?code=2834')
+
+        req.user = user;
+        next()
+    }, null)
+}
+
 function isLoggedIn(req) {
     if (!req.cookies)
         return false

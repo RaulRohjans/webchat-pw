@@ -20,6 +20,8 @@
             integrity="sha256-HwWONEZrpuoh951cQD1ov2HUK5zA5DwJ1DNUXaM6FsY="
             crossorigin="anonymous"></script>
 
+    <!-- Emoji button -->
+
 </head>
 <body>
     <div class="container" style="margin-top: 16px">
@@ -299,8 +301,8 @@
                                             <textarea class="form-control" rows="3" placeholder="Type your message here..."></textarea>
                                         </div>
                                         <div class="col-md-auto" style="display: flex;flex-direction: column;justify-content: space-evenly;">
-                                            <button>emoji</button>
                                             <button>send</button>
+                                            <button id="emoji-button">Emojis</button>
                                         </div>
                                     </div>
 
@@ -314,32 +316,50 @@
         </div>
     </div>
 
-<script>
-    function updateScroll(){
-        document.getElementsByClassName('chat-box')[0].scrollTop =
-            document.getElementsByClassName('chat-box')[0].scrollHeight;
-    }
+    <script>
+        function updateScroll(){
+            document.getElementsByClassName('chat-box')[0].scrollTop =
+                document.getElementsByClassName('chat-box')[0].scrollHeight;
+        }
 
-    $(document).ready(() => {
-        $('.chat-box').css('max-height', $(window).height() - $("#message-area").height() - 150);
-        updateScroll();
-    })
-
-    window.onresize = function() {
-        $('.chat-box').css('max-height', $(window).height() - $("#message-area").height() - 150);
-    }
-
-    <%for(const user of users) {%>
-        $('#<%= user.username%>').click(() => {
+        $(document).ready(() => {
+            $('.chat-box').css('max-height', $(window).height() - $("#message-area").height() - 150);
             updateScroll();
-
-            let textarea = document.getElementsByTagName('textarea')[0];
-            textarea.value = "@<%= user.username%> ";
-            textarea.focus();
         })
-    <%}%>
-</script>
 
+        window.onresize = function() {
+            $('.chat-box').css('max-height', $(window).height() - $("#message-area").height() - 150);
+        }
+
+        <%for(const user of users) {%>
+            $('#<%= user.username%>').click(() => {
+                updateScroll();
+
+                let textarea = document.getElementsByTagName('textarea')[0];
+                textarea.value = "@<%= user.username%> ";
+                textarea.focus();
+            })
+        <%}%>
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/emoji-button@2.2.2/dist/index.min.js"></script>
+    <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const button = document.querySelector('#emoji-button');
+            const picker = new EmojiButton({
+                position: 'top-start',
+                showAnimation: true,
+                autoHide: false,
+                autoFocusSearch: true
+            });
+            picker.on('emoji', emoji => {
+                document.querySelector('textarea').value += emoji;
+            });
+            button.addEventListener('click', () => {
+                picker.pickerVisible ? picker.hidePicker() : picker.showPicker(button);
+            });
+        });
+    </script>
 
 </body>
 </html>

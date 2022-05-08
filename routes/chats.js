@@ -2,7 +2,7 @@ const express = require('express')
 const jwt = require("jsonwebtoken")
 const multer = require('multer')
 const path = require('path')
-const mysql = require("mysql");
+const mysql = require("mysql")
 const router = express.Router()
 
 //Start Mysql
@@ -356,7 +356,30 @@ router.get('/:chatId', authenticateToken, async (req, res) => {
 
     let userObjs = queryResult.result
 
-    res.render("chats/chat", {chat: chatObj, users: userObjs})
+    if(!chatObj.private[0]){
+        res.render("chats/chat", {chat: chatObj, users: userObjs})
+    }
+    else{
+        let toUser = userObjs.filter(x => x.idUser !== req.user.idUser)
+
+        //Get all users
+        queryResult = await new Promise(async (resolve, reject) => {
+            connection.query("SELECT * FROM user WHERE deleted = 0 and idUser != ?",
+                [
+                    req.user.idUser
+                ],
+                (err, result, fields) => {
+                    resolve({err: err, result: result})
+                })
+        })
+
+        if (queryResult.err) {
+            res.redirect('/chats')
+            return
+        }
+
+        res.render("chats/chat-private", {chat: chatObj, toUser: toUser[0], users: queryResult.result})
+    }
 })
 
 
