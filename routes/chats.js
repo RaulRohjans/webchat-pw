@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken")
 const multer = require('multer')
 const path = require('path')
 const mysql = require("mysql")
+const sharp = require("sharp");
+const fs = require("fs");
 const router = express.Router()
 
 //Start Mysql
@@ -19,7 +21,7 @@ const storage = multer.diskStorage({
         callback(null, 'public/user-images')
     },
     filename: (req, file, callback) => {
-        callback(null, Date.now() + path.extname(file.originalname))
+        callback(null, 'temp-' + Date.now() + path.extname(file.originalname))
     }
 })
 const upload = multer({
@@ -100,8 +102,17 @@ router.get('/new', authenticateToken, async (req, res) => {
         return
     }
 
-
-    res.render("chats/new-chat", {users: queryResult.result})
+    switch (req.query.code){
+        case '5911':
+            res.render("chats/new-chat", {users: queryResult.result, errorMessage: 'The image must be lower than 100MB!'})
+            break;
+        case '5938':
+            res.render("chats/new-chat", {users: queryResult.result, errorMessage: 'There has been an error when processing your request.'})
+            break;
+        default:
+            res.render("chats/new-chat", {users: queryResult.result})
+            break;
+    }
 });
 
 router.post('/new', authenticateToken, upload.single('file_logo'), async (req, res) => {
@@ -144,8 +155,48 @@ router.post('/new', authenticateToken, upload.single('file_logo'), async (req, r
         description = null
     if(!req.file)
         file = null
-    else
-        file = req.file.filename
+    else{
+        //Parse cropData and validate it
+        const cropData = JSON.parse(req.body.cropData)
+
+        //Crop image and save it
+        const imageName = req.file.filename.replace('temp-', '')
+        try{
+            //fetch temp image and crop it
+            let error = false
+            await sharp("public/user-images/" + req.file.filename, {animated: true})
+                .extract({
+                    left: parseInt(cropData.x),
+                    top: parseInt(cropData.y),
+                    width: parseInt(cropData.width),
+                    height: parseInt(cropData.height)
+                })
+                .toFile("public/user-images/" + imageName, (err) => {
+                    if (err) error = true
+
+                    //Remove temp image
+                    fs.unlink("public/user-images/" + req.file.filename, (err) => {
+                        if (err) {
+                            console.error(err)
+                            res.redirect('/chats/new?code=5938')
+                            return
+                        }
+                    })
+                })
+
+            if(error){
+                res.redirect('/chats/new?code=5938')
+                return
+            }
+        }
+        catch (Exception){
+            console.log(Exception)
+            res.redirect('/chats/new?code=5938')
+            return
+        }
+
+        file = imageName
+    }
 
     //Add chat to DB
     queryResult = await new Promise(async (resolve, reject) => {
@@ -298,8 +349,6 @@ router.get('/new-private/:idUser', authenticateToken, async (req, res) => {
     res.redirect('/chats/' + newID);
 });
 
-
-
 router.get('/:chatId', authenticateToken, async (req, res) => {
 
     //Check if chat exists
@@ -381,7 +430,6 @@ router.get('/:chatId', authenticateToken, async (req, res) => {
         res.render("chats/chat-private", {chat: chatObj, toUser: toUser[0], users: queryResult.result})
     }
 })
-
 
 let userObjs
 let selectUserObjs
@@ -479,8 +527,50 @@ router.post('/:chatId/edit', authenticateToken, upload.single('file_logo'), asyn
 
     if(!req.file)
         file = null
-    else
-        file = req.file.filename
+    else{
+        //Parse cropData and validate it
+        const cropData = JSON.parse(req.body.cropData)
+
+        //Crop image and save it
+        const imageName = req.file.filename.replace('temp-', '')
+        try{
+            //fetch temp image and crop it
+            let error = false
+            await sharp("public/user-images/" + req.file.filename, {animated: true})
+                .extract({
+                    left: parseInt(cropData.x),
+                    top: parseInt(cropData.y),
+                    width: parseInt(cropData.width),
+                    height: parseInt(cropData.height)
+                })
+                .toFile("public/user-images/" + imageName, (err) => {
+                    if (err) {
+                        error = true
+                        return
+                    }
+
+                    //Remove temp image
+                    fs.unlink("public/user-images/" + req.file.filename, (err) => {
+                        if (err) {
+                            console.error(err)
+                            error = true
+                        }
+                    })
+                })
+
+            if(error){
+                res.redirect('/chats/new?code=5938')
+                return
+            }
+        }
+        catch (Exception){
+            console.log(Exception)
+            res.redirect('/chats/new?code=5938')
+            return
+        }
+
+        file = imageName
+    }
 
     //Edit chat in DB
     queryResult = await new Promise(async (resolve, reject) => {

@@ -9,7 +9,7 @@ const app = express()
 
 //Uses
 app.use(express.static("public")) //Make static files available
-app.use(express.urlencoded({ extended: true })) //Make body data accessible
+app.use(express.urlencoded({ extended: true })) //Make body data accessible , limit: '100mb', parameterLimit: 1000000
 app.use(express.json()) //Allow json parsing
 app.use(cookieParser()); //Allow cookie parsing
 app.set('view engine', 'ejs') //Use EJS
@@ -44,6 +44,20 @@ app.get('/', authenticateToken, async (req, res) => {
     }
 
     res.render("index", {username: req.user.username, isAdmin: req.user.isAdmin, prvChatUsrs: queryResult.result})
+})
+
+app.get('/redirect', authenticateToken, async (req, res) => {
+    const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+    await delay(1000)
+    if(!req.query.url){
+        res.redirect('/')
+    }
+    else{
+        if(req.query.url.substring(0, 1) === '/')
+            res.redirect(req.query.url)
+        else
+            res.redirect('/' + req.query.url)
+    }
 })
 
 const authRouter = require('./routes/auth')

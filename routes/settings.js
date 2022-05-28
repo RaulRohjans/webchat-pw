@@ -1,11 +1,12 @@
 const express = require('express');
+const fs = require('fs');
 const jwt = require("jsonwebtoken");
 const mysql = require("mysql");
 const multer = require("multer");
+const sharp = require('sharp');
 const path = require("path");
 const crypto = require("crypto");
 const router = express.Router();
-
 
 const connection = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -20,7 +21,7 @@ const storage = multer.diskStorage({
         callback(null, 'public/user-images')
     },
     filename: (req, file, callback) => {
-        callback(null, Date.now() + path.extname(file.originalname))
+        callback(null, 'temp-' + Date.now() + path.extname(file.originalname))
     }
 })
 const upload = multer({
@@ -38,6 +39,12 @@ router.get('/', authenticateToken, (req, res) => {
     switch (req.query.code) {
         case "5937":
             res.render("settings/settings", {errorMessage: "Invalid Image!", user: req.user})
+            break
+        case "5938":
+            res.render("settings/settings", {errorMessage: "An error has occurred!", user: req.user})
+            break
+        case '5911':
+            res.render("settings/settings", {errorMessage: "Your image must be below 100MB!", user: req.user})
             break
         case '3915':
             res.render("settings/settings", {successMessage: "User Settings Updated!", user: req.user})
@@ -191,8 +198,57 @@ router.post('/', authenticateToken, async (req, res) => {
 
 router.post('/image', authenticateToken, upload.single('image'), async (req, res) => {
     //Check image
-    if (!req.file) {
+    if (!req.file || !req.body.cropData) {
         res.redirect('/settings?code=5937')
+        return
+    }
+
+    //Parse cropData and validate it
+    const cropData = JSON.parse(req.body.cropData)
+    if(cropData.x == null || cropData.y == null || cropData.width == null || cropData.height == null) {
+        res.redirect('/settings?code=5937')
+        return
+    }
+    else if(cropData.x < 0 || cropData.x > cropData.width || cropData.y < 0 || cropData.y > cropData.height){
+        res.redirect('/settings?code=5937')
+        return
+    }
+
+    //Crop image and save it
+    const imageName = req.file.filename.replace('temp-', '')
+    try{
+        //fetch temp image and crop it
+        let error = false
+        await sharp("public/user-images/" + req.file.filename, {animated: true})
+            .extract({
+                left: parseInt(cropData.x),
+                top: parseInt(cropData.y),
+                width: parseInt(cropData.width),
+                height: parseInt(cropData.height)
+            })
+            .toFile("public/user-images/" + imageName, (err) => {
+                if (err) error = true
+
+                //Remove temp image
+                fs.unlink("public/user-images/" + req.file.filename, (err) => {
+                    if (err) {
+                        console.error(err)
+                        res.redirect('/settings?code=5938')
+                        return
+                    }
+                })
+            })
+
+        if(error){
+            res.redirect('/settings?code=5938')
+            return
+        }
+
+
+    }
+    catch (Exception){
+        console.log(Exception)
+        res.redirect('/settings?code=5938')
         return
     }
 
@@ -200,7 +256,7 @@ router.post('/image', authenticateToken, upload.single('image'), async (req, res
     let queryResult = await new Promise(async (resolve, reject) => {
         connection.query("UPDATE user SET image = ? WHERE idUser = ?",
             [
-                req.file.filename,
+                imageName,
                 req.user.idUser
             ],
             (err, result, fields) => {
@@ -209,14 +265,15 @@ router.post('/image', authenticateToken, upload.single('image'), async (req, res
     })
 
     if (queryResult.err) {
-        res.sendStatus(500)
+        res.redirect('/settings?code=5938')
         return
     }
 
     //Update token
     await updateToken(req.user.idUser, res)
 
-    res.redirect('/settings')
+    //use redirect to not glitch image preview after page load
+    res.redirect('/redirect?url=/settings')
 });
 
 router.delete('/', authenticateToken, async (req, res) => {
