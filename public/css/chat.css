@@ -412,3 +412,31 @@ ul {
     text-decoration: none;
     color: black;
 }
+
+.chat-button-container {
+    display: flex;flex-direction: column;justify-content: space-evenly;
+}
+
+.ct-left {
+    padding-right: 0 !important;
+}
+
+.ct-right {
+    padding-left: 0 !important;
+}
+
+.chat-button-container img {
+    max-width: 28px;
+    margin: auto;
+    cursor: pointer;
+
+    -webkit-transition: all .2s ease-in-out 0s;
+    -moz-transition: all .2s ease-in-out 0s;
+    -o-transition: all .2s ease-in-out 0s;
+    -ms-transition: all .2s ease-in-out 0s;
+    transition: all .2s ease-in-out 0s;
+}
+
+.chat-button-container img:hover {
+    max-width: 24px;
+}
