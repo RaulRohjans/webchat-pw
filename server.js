@@ -2,10 +2,15 @@ require('dotenv').config()
 
 //Requires
 const express = require('express')
+const app = express()
 const jwt = require('jsonwebtoken')
 const mysql = require('mysql')
 const cookieParser = require('cookie-parser');
-const app = express()
+const io = require("socket.io")(8081, {
+    cors: {
+        origin: ['http://localhost:8080'],
+    },
+});
 
 //Uses
 app.use(express.static("public")) //Make static files available
@@ -20,9 +25,62 @@ const connection = mysql.createConnection({
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
     password: process.env.DB_PW,
-    database: process.env.DB_NAME
+    database: process.env.DB_NAME,
+    charset: 'utf8mb4'
 })
 
+//Start Socket.io
+io.on("connection", socket => {
+    socket.on('send-message', (message, image, user, room) => {
+        socket.to(room).emit('receive-message', message)
+
+        //Get user ID from username
+        connection.query("SELECT idUser from user where username = ? and deleted = 0;",
+            [
+                user
+            ],
+            (err, result, fields) => {
+                if(!err){
+                    //Save message in DB
+                    if(!image){
+                        connection.query("INSERT INTO message (text, idUser, idChat, sent_date, deleted) VALUES (?, ?, ?, ?, 0)",
+                            [
+                                message,
+                                result[0].idUser,
+                                room,
+                                new Date()
+                            ],
+                            (err, result, fields) => {
+                                if(err){
+                                    console.log("ERROR: An error has occurred when saving a message. " + err)
+                                }
+                            })
+                    }
+                    else {
+                        connection.query("INSERT INTO message (image, idUser, idChat, sent_date, deleted) VALUES (?, ?, ?, ?, 0)",
+                            [
+                                image,
+                                result[0].idUser,
+                                room,
+                                new Date()
+                            ],
+                            (err, result, fields) => {
+                                if(err){
+                                    console.log("ERROR: An error has occurred when saving a message. " + err)
+                                }
+                            })
+                    }
+                }
+            })
+
+    })
+
+    socket.on('join-room', (room, userID) => {
+        console.log(userID + " joined room " + room)
+        socket.join(room)
+        socket.server.in(room).emit('user-join', userID)
+    })
+})
 
 //Routes
 app.get('/', authenticateToken, async (req, res) => {
@@ -51,6 +109,7 @@ app.get('/redirect', authenticateToken, async (req, res) => {
     await delay(1000)
     if(!req.query.url){
         res.redirect('/')
+        res.status(200).json({})
     }
     else{
         if(req.query.url.substring(0, 1) === '/')

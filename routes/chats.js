@@ -13,7 +13,8 @@ const connection = mysql.createConnection({
     port: process.env.DB_PORT,
     user: process.env.DB_USER,
     password: process.env.DB_PW,
-    database: process.env.DB_NAME
+    database: process.env.DB_NAME,
+    charset: 'utf8mb4'
 })
 
 const storage = multer.diskStorage({
@@ -402,11 +403,32 @@ router.get('/:chatId', authenticateToken, async (req, res) => {
         res.redirect('/chats')
         return
     }
-
     let userObjs = queryResult.result
 
+    //Get messages in chat
+    queryResult = await new Promise(async (resolve, reject) => {
+        connection.query("SELECT * FROM message WHERE deleted = 0 and idChat = ?",
+            [
+                req.params.chatId
+            ],
+            (err, result, fields) => {
+                resolve({err: err, result: result})
+            })
+    })
+
+    if (queryResult.err) {
+        res.redirect('/chats')
+        return
+    }
+    let messages = queryResult.result
+
     if(!chatObj.private[0]){
-        res.render("chats/chat", {chat: chatObj, users: userObjs})
+        res.render("chats/chat", {
+            chat: chatObj,
+            users: userObjs,
+            currentUser: req.user,
+            messages: messages
+        })
     }
     else{
         let toUser = userObjs.filter(x => x.idUser !== req.user.idUser)
@@ -427,7 +449,13 @@ router.get('/:chatId', authenticateToken, async (req, res) => {
             return
         }
 
-        res.render("chats/chat-private", {chat: chatObj, toUser: toUser[0], users: queryResult.result})
+        res.render("chats/chat-private", {
+            chat: chatObj,
+            toUser: toUser[0],
+            users: queryResult.result,
+            currentUser: req.user,
+            messages: messages
+        })
     }
 })
 
