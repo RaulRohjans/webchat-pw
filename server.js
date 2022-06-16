@@ -32,8 +32,6 @@ const connection = mysql.createConnection({
 //Start Socket.io
 io.on("connection", socket => {
     socket.on('send-message', (message, image, user, room) => {
-        socket.to(room).emit('receive-message', message)
-
         //Get user ID from username
         connection.query("SELECT idUser from user where username = ? and deleted = 0;",
             [
@@ -50,9 +48,12 @@ io.on("connection", socket => {
                                 room,
                                 new Date()
                             ],
-                            (err, result, fields) => {
+                            (err, res, fields) => {
                                 if(err){
                                     console.log("ERROR: An error has occurred when saving a message. " + err)
+                                }
+                                else{
+                                    socket.to(room).emit('receive-message', message, result[0].idUser)
                                 }
                             })
                     }
@@ -64,9 +65,12 @@ io.on("connection", socket => {
                                 room,
                                 new Date()
                             ],
-                            (err, result, fields) => {
+                            (err, res, fields) => {
                                 if(err){
                                     console.log("ERROR: An error has occurred when saving a message. " + err)
+                                }
+                                else{
+                                    socket.to(room).emit('receive-image', image, result[0].idUser)
                                 }
                             })
                     }
@@ -109,7 +113,6 @@ app.get('/redirect', authenticateToken, async (req, res) => {
     await delay(1000)
     if(!req.query.url){
         res.redirect('/')
-        res.status(200).json({})
     }
     else{
         if(req.query.url.substring(0, 1) === '/')

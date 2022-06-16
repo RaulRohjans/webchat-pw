@@ -440,3 +440,37 @@ ul {
 .chat-button-container img:hover {
     max-width: 24px;
 }
+
+#mute-chat-sound {
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+
+    -webkit-transition: all .2s ease-in-out 0s;
+    -moz-transition: all .2s ease-in-out 0s;
+    -o-transition: all .2s ease-in-out 0s;
+    -ms-transition: all .2s ease-in-out 0s;
+    transition: all .2s ease-in-out 0s;
+}
+
+#mute-chat-sound:hover {
+    width: 28px;
+    height: 28px;
+}
+
+.reply-icon {
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+
+    -webkit-transition: all .2s ease-in-out 0s;
+    -moz-transition: all .2s ease-in-out 0s;
+    -o-transition: all .2s ease-in-out 0s;
+    -ms-transition: all .2s ease-in-out 0s;
+    transition: all .2s ease-in-out 0s;
+}
+
+.reply-icon:hover {
+    width: 36px;
+    height: 36px;
+}

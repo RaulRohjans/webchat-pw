@@ -421,7 +421,6 @@ router.get('/:chatId', authenticateToken, async (req, res) => {
         return
     }
     let messages = queryResult.result
-
     if(!chatObj.private[0]){
         res.render("chats/chat", {
             chat: chatObj,
@@ -457,6 +456,18 @@ router.get('/:chatId', authenticateToken, async (req, res) => {
             messages: messages
         })
     }
+})
+
+router.post('/image-upload', upload.single('image'), authenticateToken, async (req, res) => {
+    const file_name = req.file.filename.replaceAll('temp-', '')
+    fs.rename('public/user-images/' + req.file.filename, 'public/user-images/' + file_name , (err) => {
+        if(err){
+            res.status(500).json({ error: err })
+        }
+        else{
+            res.status(200).json({ image: file_name })
+        }
+    })
 })
 
 let userObjs

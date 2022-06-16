@@ -6683,26 +6683,92 @@ const socket = io(url.protocol + '//' + url.hostname + ':8081' /*+ url.port*/)
 const roomID = window.location.href.split("/").pop();
 const messageInput = document.getElementById('messageInputArea')
 const messageSendBtn = document.getElementById('send-message-btn')
+const messageImageBtn = document.getElementById('attach-button');
 
 socket.on('connect', () => {
   //Join Room
-  socket.emit('join-room', roomID, currentUsername)
+  socket.emit('join-room', roomID, currentUser.username)
 
   messageSendBtn.addEventListener("click", () => {
     if(messageInput.value.trim() !== "") {
-      socket.emit('send-message', messageInput.value.trim(), null, currentUsername, roomID)
-      addMessage(messageInput.value.trim(), true)
+      socket.emit('send-message', messageInput.value.trim(), null, currentUser.username, roomID)
+      addMessage(messageInput.value.trim(), true, currentUser.idUser)
       messageInput.value = '';
     }
-  })
+  });
+
+  messageImageBtn.addEventListener("click", () => {
+    const imageContainer = document.getElementById('imageUploadContainer');
+
+    let fileInput = document.createElement('input')
+    fileInput.type = 'file'
+    fileInput.name = 'file_logo'
+    fileInput.id = 'file_logo'
+    fileInput.accept = '.gif,.jpg,.jpeg,.png'
+    fileInput.onchange = (event) => {
+      let files = event.target.files;
+
+      if(files && files.length > 0){
+        if(files[0].size / 1000000 > 100 ){
+          Swal.fire(
+              'Image too large!',
+              'The image you are trying to upload must be under 100MB!',
+              'error'
+          )
+        }
+        const data = new FormData();
+        data.append("image", files[0]);
+
+        $.ajax({
+          url: '/chats/image-upload',
+          method: 'POST',
+          async: false,
+          processData: false,
+          contentType: false,
+          data: data,
+          success: (res) => {
+            const image = res.image;
+            if(image){
+              socket.emit('send-message', null, image, currentUser.username, roomID)
+              addMessage(image, true, currentUser.idUser, true)
+            }
+            else{
+              Swal.fire(
+                  'Upload error!',
+                  'There has been a server side error when uploading the image!',
+                  'error'
+              )
+            }
+          },
+          error: () => {
+            Swal.fire(
+                'Upload error!',
+                'There has been a server side error when uploading the image!',
+                'error'
+            )
+          }
+        })
+
+      }
+    };
+
+    imageContainer.appendChild(fileInput);
+    fileInput.click();
+
+  });
+
 })
 
 socket.on('user-join', (currentUser) => {
   changeOnlineStatus(currentUser, true)
 })
 
-socket.on('receive-message', (message) => {
-  addMessage(message, false)
+socket.on('receive-message', (message, idUser) => {
+  addMessage(message, false, idUser)
+})
+
+socket.on('receive-image', (image, idUser) => {
+  addMessage(image, false, idUser, true)
 })
 
 function changeOnlineStatus(idUser, isOnline) {
@@ -6722,13 +6788,13 @@ function changeOnlineStatus(idUser, isOnline) {
       break;
     }
   }
-
 }
 
-function addMessage(message, isSent) {
+function addMessage(message, isSent, idUser, isImage = false) {
   const messageWrapper = document.getElementById('message-wrapper')
   const li = document.createElement("li")
   const d = new Date()
+  const muteState = localStorage.getItem('chat-mute');
 
   if(isSent === true){
     li.classList.add("chat-right");
@@ -6736,27 +6802,46 @@ function addMessage(message, isSent) {
     li.innerHTML += '<div class="chat-hour">' +
         (d.getHours()<10?'0':'') + d.getHours() + ':' +
         (d.getMinutes()<10?'0':'') + d.getMinutes() +
-        ' <span class="fa fa-check-circle"></span></div>' +
-        '<div class="chat-text">' +
-        message.replaceAll("\n", "<br />") +
-        '</div>' +
-        '<div class="chat-avatar">' +
-        '<img src="https://www.bootdey.com/img/Content/avatar/avatar3.png" alt="Retail Admin">' +
-        '<div class="chat-name">Russell</div>' +
+        ' <span class="fa fa-check-circle"></span></div>';
+
+    if(isImage){
+      li.innerHTML += '<div class="chat-text" style="border:1px solid ' + currentUser.color + ';">' +
+          '<img src="/user-images/' + message + '" alt="msgImage" style="border-radius: 5px; width: 275px; height: auto"/>' +
+          '</div>';
+    }
+    else {
+      li.innerHTML += '<div class="chat-text" style="border:1px solid ' + currentUser.color + ';">' +
+          message.replaceAll("\n", "<br />") +
+          '</div>';
+    }
+
+    li.innerHTML += '<div class="chat-avatar">' +
+        '<img src="/user-images/' + currentUser.image + '" alt="pfp">' +
+        '<div class="chat-name">' + currentUser.username + '</div>' +
         '</div>' +
         '</li>';
   }
   else{
+    let msgUser = userList.find(e => e.idUser === idUser)
     li.classList.add("chat-left");
 
     li.innerHTML += '<div class="chat-avatar">' +
-        '<img src="https://www.bootdey.com/img/Content/avatar/avatar3.png" alt="Retail Admin">' +
-        '<div class="chat-name">Russell</div>' +
-        '</div>' +
-        '<div class="chat-text">' +
-        message.replaceAll("\n", "<br />") +
-        '</div>' +
-        '<div class="chat-hour">' +
+        '<img src="/user-images/' + msgUser.image + '" alt="pfp">' +
+        '<div class="chat-name">' + msgUser.username + '</div>' +
+        '</div>';
+
+    if(isImage){
+      li.innerHTML += '<div class="chat-text" style="border:1px solid ' + msgUser.color + ';">' +
+          '<img src="/user-images/' + message + '" alt="msgImage" style="border-radius: 5px; width: 275px; height: auto"/>' +
+          '</div>';
+    }
+    else{
+      li.innerHTML += '<div class="chat-text" style="border:1px solid ' + msgUser.color + ';">' +
+          message.replaceAll("\n", "<br />") +
+          '</div>';
+    }
+
+    li.innerHTML += '<div class="chat-hour">' +
         (d.getHours()<10?'0':'') + d.getHours() + ':' +
         (d.getMinutes()<10?'0':'') + d.getMinutes() +
         ' <span class="fa fa-check-circle"></span></div>' +
@@ -6765,5 +6850,17 @@ function addMessage(message, isSent) {
 
   messageWrapper.appendChild(li);
   updateScroll();
+
+  //Send message notification
+  if(muteState !== 'true'){
+    if(isSent){
+      let audio = new Audio('/audio/send-message.mp3');
+      audio.play();
+    }
+    else{
+      let audio = new Audio('/audio/receive-message.mp3');
+      audio.play();
+    }
+  }
 }
 },{"socket.io-client":29}]},{},[40]);

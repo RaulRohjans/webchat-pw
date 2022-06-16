@@ -16,12 +16,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 
     <!-- JQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.slim.js"
-            integrity="sha256-HwWONEZrpuoh951cQD1ov2HUK5zA5DwJ1DNUXaM6FsY="
-            crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <!-- Emoji button -->
-
+    <!-- SweetAlert -->
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
     <div class="container" style="margin-top: 16px">
@@ -48,9 +46,9 @@
                                     <div class="chat-search-box">
 
                                         <div class="input-group">
-                                            <input class="form-control" placeholder="Search">
+                                            <input class="form-control" placeholder="Search" id="searchBox">
                                             <div class="input-group-btn">
-                                                <button type="button" class="btn btn-info">
+                                                <button type="button" class="btn btn-info" id="searchBtn">
                                                     <i class="fa fa-search"></i>
                                                 </button>
                                             </div>
@@ -75,17 +73,9 @@
                                                         <span class="name"><%= user.username%></span>
                                                     <%}%>
                                                 </p>
+                                                <img src="/icons/reply.svg" class="reply-icon" id="id-<%= user.username%>"/>
                                             </li>
                                         <%}%>
-                                        <!--<li class="person" data-chat="person5">
-                                            <div class="user">
-                                                <img src="https://www.bootdey.com/img/Content/avatar/avatar5.png" alt="Retail Admin">
-                                                <span class="status online"></span>
-                                            </div>
-                                            <p class="name-time">
-                                                <span class="name">Michael Jordan</span>
-                                            </p>
-                                        </li>-->
                                     </ul>
                                 </div>
                             </div>
@@ -110,49 +100,51 @@
                                                 <span style="font-size: 14px;"><%= locals.chat.description%></span>
                                             </div>
                                         </div>
+
+                                        <div class="col-md-auto my-auto">
+                                            <img id="mute-chat-sound" class="my-auto" src="/icons/unmute.svg" alt="mute/unmute">
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div class="chat-container">
                                     <ul class="chat-box chatContainerScroll" id="message-wrapper">
-                                        <!--<li class="chat-left">
-                                            <div class="chat-avatar">
-                                                <img src="https://www.bootdey.com/img/Content/avatar/avatar3.png" alt="Retail Admin">
-                                                <div class="chat-name">Russell</div>
-                                            </div>
-                                            <div class="chat-text">Hello, I'm Russell.
-                                                <br>How can I help you today?</div>
-                                            <div class="chat-hour">08:55 <span class="fa fa-check-circle"></span></div>
-                                        </li>
-                                        <li class="chat-right">
-                                            <div class="chat-hour">08:56 <span class="fa fa-check-circle"></span></div>
-                                            <div class="chat-text">Hi, Russell
-                                                <br> I need more information about Developer Plan.</div>
-                                            <div class="chat-avatar">
-                                                <img src="https://www.bootdey.com/img/Content/avatar/avatar3.png" alt="Retail Admin">
-                                                <div class="chat-name">Sam</div>
-                                            </div>
-                                        </li>-->
-
                                         <%if(locals.messages) {%>
                                             <%for(const message of locals.messages) {%>
                                                 <%if(locals.currentUser.idUser === message.idUser) {%>
                                                     <li class="chat-right">
                                                         <div class="chat-hour"><% const d = new Date(message.sent_date);%>
                                                             <%= (d.getHours()<10?'0':'') + d.getHours() + ":" + (d.getMinutes()<10?'0':'') + d.getMinutes()%> <span class="fa fa-check-circle"></span></div>
-                                                        <div class="chat-text"><%= message.text.replaceAll('\n', '<br />')%></div>
+
+                                                        <%if(message.image) {%>
+                                                            <div class="chat-text" style="border:1px solid <%= locals.currentUser.color%>;">
+                                                                <img src="/user-images/<%= message.image%>" alt="msgImage" style="border-radius: 5px; width: 275px; height: auto"/>
+                                                            </div>
+                                                        <%} else {%>
+                                                            <div class="chat-text" style="border:1px solid <%= locals.currentUser.color%>;"><%= message.text.replaceAll('\n', '<br />')%></div>
+                                                        <%}%>
+
                                                         <div class="chat-avatar">
                                                             <img src="/user-images/<%= locals.currentUser.image%>" alt="Retail Admin">
                                                             <div class="chat-name"><%= locals.currentUser.username%></div>
                                                         </div>
                                                     </li>
                                                 <%} else {%>
+                                                    <% let messageUser = locals.users.find(e => e.idUser === message.idUser)%>
                                                     <li class="chat-left">
                                                         <div class="chat-avatar">
-                                                            <img src="https://www.bootdey.com/img/Content/avatar/avatar3.png" alt="Retail Admin">
-                                                            <div class="chat-name">Russell</div>
+                                                            <img src="/user-images/<%= messageUser.image%>" alt="pfp">
+                                                            <div class="chat-name"><%= messageUser.username%></div>
                                                         </div>
-                                                        <div class="chat-text"><%= message.text.replaceAll('\n', '<br />')%></div>
+
+                                                        <%if(message.image) {%>
+                                                            <div class="chat-text" style="border:1px solid <%= messageUser.color%>;">
+                                                                <img src="/user-images/<%= message.image%>" alt="msgImage" style="border-radius: 5px; width: 275px; height: auto"/>
+                                                            </div>
+                                                        <%} else {%>
+                                                            <div class="chat-text" style="border:1px solid <%= messageUser.color%>;"><%= message.text.replaceAll('\n', '<br />')%></div>
+                                                        <%}%>
+
                                                         <div class="chat-hour"><% const d = new Date(message.sent_date);%>
                                                             <%= (d.getHours()<10?'0':'') + d.getHours() + ":" + (d.getMinutes()<10?'0':'') + d.getMinutes()%> <span class="fa fa-check-circle"></span></div>
                                                     </li>
@@ -164,7 +156,10 @@
                                     <div id="message-area" class="form-group row mt-3 mb-0">
                                         <div class="col-md-1 chat-button-container ct-left">
                                             <img src="/icons/emoji.svg" id="emoji-button"/>
-                                            <img src="/icons/attachment.svg"/>
+                                            <img src="/icons/attachment.svg" id="attach-button"/>
+                                            <div id="imageUploadContainer" style="display: none">
+
+                                            </div>
                                         </div>
                                         <div class="col-md-10">
                                             <textarea id="messageInputArea" class="form-control" rows="3" placeholder="Type your message here..."></textarea>
@@ -185,9 +180,67 @@
     </div>
 
     <script>
-        const currentUsername = '<%= locals.currentUser.username%>'
+        const currentUser = {
+            idUser: '<%= locals.currentUser.idUser%>',
+            username: '<%= locals.currentUser.username%>',
+            email: '<%= locals.currentUser.email%>',
+            first_name: '<%= locals.currentUser.first_name%>',
+            last_name: '<%= locals.currentUser.last_name%>',
+            image: '<%= locals.currentUser.image%>',
+            color: '<%= locals.currentUser.color%>'
+        };
+
+        const userList = JSON.parse('<%= JSON.stringify(locals.users)%>'.replaceAll("&#34;", '"'))
     </script>
     <script src="/js/dist/bundle.js"></script>
+
+    <script>
+        function reloadIcon(){
+            const muteIcon = document.getElementById('mute-chat-sound');
+            const muteState = localStorage.getItem('chat-mute');
+
+            if(muteState && muteState === 'true') {
+                muteIcon.src = '/icons/mute.svg';
+            }
+            else{
+                muteIcon.src = '/icons/unmute.svg';
+            }
+        }
+        $('document').ready(() => {
+            reloadIcon();
+        })
+
+        $('#mute-chat-sound').click(() => {
+            const muteState = localStorage.getItem('chat-mute');
+
+            if(muteState && muteState === 'true') {
+                localStorage.setItem('chat-mute', 'false');
+            }
+            else{
+                localStorage.setItem('chat-mute', 'true');
+            }
+            reloadIcon();
+        })
+    </script>
+
+    <script>
+        $('#searchBtn').click(() => {
+            const search_box = document.getElementById('searchBox');
+            const userWrapper = document.getElementById('user-wrapper');
+            const userList = userWrapper.getElementsByTagName("li");
+
+            if(search_box.value.trim() !== ''){
+                for(let i = 0; i < userList.length; i++){
+                    if(!userList[i].getElementsByClassName('name')[0].innerHTML.includes(search_box.value.trim())){
+                        userList[i].style.display = "none";
+                    }
+                    else{
+                        userList[i].style.display = "block";
+                    }
+                }
+            }
+        })
+    </script>
 
     <script>
         function updateScroll(){
@@ -205,13 +258,20 @@
         }
 
         <%for(const user of users) {%>
-            $('#<%= user.username%>').click(() => {
-                updateScroll();
+            <%if(user.idUser != currentUser.idUser) {%>
+                $('#<%= user.username%>').click((event) => {
+                    if(event.target.id != 'id-<%= user.username%>')
+                    window.location.href = "/chats/new-private/<%= user.idUser%>";
+                });
 
-                let textarea = document.getElementsByTagName('textarea')[0];
-                textarea.value = "@<%= user.username%> ";
-                textarea.focus();
-            })
+                $('#id-<%= user.username%>').click((event) => {
+                    updateScroll();
+
+                    let textarea = document.getElementsByTagName('textarea')[0];
+                    textarea.value = "@<%= user.username%> ";
+                    textarea.focus();
+                });
+            <%}%>
         <%}%>
     </script>
 
