@@ -6,9 +6,9 @@ const app = express()
 const jwt = require('jsonwebtoken')
 const mysql = require('mysql')
 const cookieParser = require('cookie-parser');
-const io = require("socket.io")(8081, {
+const io = require("socket.io")(process.env.SOCKET_PORT, {
     cors: {
-        origin: [process.env.DOMAIN + ':8080'],
+        origin: [process.env.DOMAIN + ':' + process.env.SERVER_PORT],
     },
 });
 
@@ -157,4 +157,4 @@ function authenticateToken(req, res, next) {
     }, null)
 }
 
-app.listen(8080)
+app.listen(process.env.SERVER_PORT)
