@@ -80,7 +80,6 @@ io.on("connection", socket => {
     })
 
     socket.on('join-room', (room, userID) => {
-        console.log(userID + " joined room " + room)
         socket.join(room)
         socket.server.in(room).emit('user-join', userID)
     })
