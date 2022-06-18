@@ -8,7 +8,7 @@ const mysql = require('mysql')
 const cookieParser = require('cookie-parser');
 const io = require("socket.io")(8081, {
     cors: {
-        origin: ['http://localhost:8080'],
+        origin: [process.env.DOMAIN + ':8080'],
     },
 });
 
