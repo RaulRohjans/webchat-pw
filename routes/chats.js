@@ -220,7 +220,11 @@ router.post('/new', authenticateToken, upload.single('file_logo'), async (req, r
     }
 
     //Add users to chat
-    let userList = req.body.usrSelect;
+    let userList = [];
+    if(req.body.usrSelect.isArray())
+        userList = req.body.usrSelect
+    else
+        userList.push(req.body.usrSelect)
     userList.push(req.user.idUser);
     for(let i = 0; i < req.body.usrSelect.length; i++){
 
