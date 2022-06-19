@@ -6683,11 +6683,13 @@ const socket = io(url.protocol + '//' + url.hostname + ':8081' /*+ url.port*/)
 const roomID = window.location.href.split("/").pop();
 const messageInput = document.getElementById('messageInputArea')
 const messageSendBtn = document.getElementById('send-message-btn')
-const messageImageBtn = document.getElementById('attach-button');
+const messageImageBtn = document.getElementById('attach-button')
+const backBtn = document.getElementById('backBtn')
 
 socket.on('connect', () => {
   //Join Room
   socket.emit('join-room', roomID, currentUser.username)
+  changeOnlineStatus([{ room: roomID, user: currentUser.username }], true)
 
   messageSendBtn.addEventListener("click", () => {
     if(messageInput.value.trim() !== "") {
@@ -6757,10 +6759,17 @@ socket.on('connect', () => {
 
   });
 
+  backBtn.addEventListener('click', () => {
+    socket.emit('leave-room', roomID, currentUser.username)
+  })
 })
 
-socket.on('user-join', (currentUser) => {
-  changeOnlineStatus(currentUser, true)
+socket.on('user-join', (onlineUsers) => {
+  changeOnlineStatus(onlineUsers, true)
+})
+
+socket.on('user-left', (onlineUsers) => {
+  changeOnlineStatus(onlineUsers, false)
 })
 
 socket.on('receive-message', (message, idUser) => {
@@ -6771,11 +6780,12 @@ socket.on('receive-image', (image, idUser) => {
   addMessage(image, false, idUser, true)
 })
 
-function changeOnlineStatus(idUser, isOnline) {
+function changeOnlineStatus(users, isOnline) {
   const userList = document.getElementById('user-wrapper').getElementsByTagName("li");
 
   for(let i = 0; i < userList.length; i++){
-    if(userList[i].id === idUser){
+    let idUser = users.find(e => e.user === userList[i].id && e.room === roomID)
+    if(idUser){
       const spanElem = userList[i].getElementsByClassName("user")[0]
           .getElementsByTagName("span")[0];
 
@@ -6785,7 +6795,6 @@ function changeOnlineStatus(idUser, isOnline) {
         else
           spanElem.className = 'status busy';
       }
-      break;
     }
   }
 }

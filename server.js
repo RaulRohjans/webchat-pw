@@ -30,6 +30,7 @@ const connection = mysql.createConnection({
 })
 
 //Start Socket.io
+let onlineUsers = []
 io.on("connection", socket => {
     socket.on('send-message', (message, image, user, room) => {
         //Get user ID from username
@@ -81,7 +82,19 @@ io.on("connection", socket => {
 
     socket.on('join-room', (room, userID) => {
         socket.join(room)
-        socket.server.in(room).emit('user-join', userID)
+
+        console.log(socket);
+
+        if(!onlineUsers.find(e => e.room === room && e.user === userID))
+            onlineUsers.push({ room: room, user: userID })
+
+        socket.server.in(room).emit('user-join', onlineUsers)
+    })
+
+    socket.on('leave-room', (room, userID) => {
+        onlineUsers = onlineUsers.filter(e => e.room !== room && e.user !== userID)
+
+        socket.server.in(room).emit('user-left', [{ room: room, user: userID }])
     })
 })
 
