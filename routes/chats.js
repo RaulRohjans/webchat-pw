@@ -221,7 +221,7 @@ router.post('/new', authenticateToken, upload.single('file_logo'), async (req, r
 
     //Add users to chat
     let userList = [];
-    if(req.body.usrSelect.isArray())
+    if(Array.isArray(req.body.usrSelect))
         userList = req.body.usrSelect
     else
         userList.push(req.body.usrSelect)

@@ -137,7 +137,7 @@
                                                     <% let messageUser = locals.users.find(e => e.idUser === message.idUser)%>
                                                     <li class="chat-left">
                                                         <div class="chat-avatar">
-                                                            <%if(locals.currentUser.image) {%>
+                                                            <%if(messageUser.image) {%>
                                                                 <img src="/user-images/<%= messageUser.image%>" alt="pfp">
                                                             <%} else {%>
                                                                 <img src="/images/user-default.png" alt="pfp">
