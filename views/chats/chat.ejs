@@ -125,7 +125,11 @@
                                                         <%}%>
 
                                                         <div class="chat-avatar">
-                                                            <img src="/user-images/<%= locals.currentUser.image%>" alt="Retail Admin">
+                                                            <%if(locals.currentUser.image) {%>
+                                                                <img src="/user-images/<%= locals.currentUser.image%>" alt="pfp">
+                                                            <%} else {%>
+                                                                <img src="/images/user-default.png" alt="pfp">
+                                                            <%}%>
                                                             <div class="chat-name"><%= locals.currentUser.username%></div>
                                                         </div>
                                                     </li>
@@ -133,7 +137,11 @@
                                                     <% let messageUser = locals.users.find(e => e.idUser === message.idUser)%>
                                                     <li class="chat-left">
                                                         <div class="chat-avatar">
-                                                            <img src="/user-images/<%= messageUser.image%>" alt="pfp">
+                                                            <%if(locals.currentUser.image) {%>
+                                                                <img src="/user-images/<%= messageUser.image%>" alt="pfp">
+                                                            <%} else {%>
+                                                                <img src="/images/user-default.png" alt="pfp">
+                                                            <%}%>
                                                             <div class="chat-name"><%= messageUser.username%></div>
                                                         </div>
 

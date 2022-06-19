@@ -83,8 +83,6 @@ io.on("connection", socket => {
     socket.on('join-room', (room, userID) => {
         socket.join(room)
 
-        console.log(socket);
-
         if(!onlineUsers.find(e => e.room === room && e.user === userID))
             onlineUsers.push({ room: room, user: userID })
 

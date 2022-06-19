@@ -6759,9 +6759,10 @@ socket.on('connect', () => {
 
   });
 
-  backBtn.addEventListener('click', () => {
-    socket.emit('leave-room', roomID, currentUser.username)
-  })
+  if(backBtn)
+    backBtn.addEventListener('click', () => {
+      socket.emit('leave-room', roomID, currentUser.username)
+    })
 })
 
 socket.on('user-join', (onlineUsers) => {
@@ -6824,20 +6825,26 @@ function addMessage(message, isSent, idUser, isImage = false) {
           '</div>';
     }
 
-    li.innerHTML += '<div class="chat-avatar">' +
-        '<img src="/user-images/' + currentUser.image + '" alt="pfp">' +
-        '<div class="chat-name">' + currentUser.username + '</div>' +
-        '</div>' +
-        '</li>';
+    if(currentUser.image)
+      li.innerHTML += '<div class="chat-avatar"><img src="/user-images/' + currentUser.image + '" alt="pfp"><div class="chat-name">' + currentUser.username + '</div></div></li>';
+    else
+      li.innerHTML += '<div class="chat-avatar"><img src="/images/user-default.png" alt="pfp"><div class="chat-name">' + currentUser.username + '</div></div></li>';
+
   }
   else{
     let msgUser = userList.find(e => e.idUser === idUser)
     li.classList.add("chat-left");
 
-    li.innerHTML += '<div class="chat-avatar">' +
-        '<img src="/user-images/' + msgUser.image + '" alt="pfp">' +
-        '<div class="chat-name">' + msgUser.username + '</div>' +
-        '</div>';
+    if(msgUser.image)
+      li.innerHTML += '<div class="chat-avatar">' +
+          '<img src="/user-images/' + msgUser.image + '" alt="pfp">' +
+          '<div class="chat-name">' + msgUser.username + '</div>' +
+          '</div>';
+    else
+      li.innerHTML += '<div class="chat-avatar">' +
+          '<img src="/images/user-default.png" alt="pfp">' +
+          '<div class="chat-name">' + msgUser.username + '</div>' +
+          '</div>';
 
     if(isImage){
       li.innerHTML += '<div class="chat-text" style="border:1px solid ' + msgUser.color + ';">' +
